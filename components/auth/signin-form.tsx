@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -34,7 +35,7 @@ export default function SignInForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-8">
         <FormField
           control={form.control}
           name="email"
@@ -59,7 +60,8 @@ export default function SignInForm() {
             </FormItem>
           )}
         />
-        <Button>Sign In</Button>
+        <Link href="/forgot-password">Forgot Password?</Link>
+        <Button className="w-full h-12 rounded-3xl bg-primary">Sign In</Button>
       </form>
     </Form>
   );
