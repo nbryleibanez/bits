@@ -3,7 +3,7 @@ import ProfileCard from "@/components/profile-card";
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col p-5 gap-4">
+    <main className="flex min-h-screen flex-col gap-4">
       <h1 className="text-lg font-bold">Home</h1>
       <ProfileCard />
       <HabitList />
