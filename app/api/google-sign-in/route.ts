@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
 import crypto from "crypto";
+import { encrypt } from "@/utils/encryption";
 
 const { NEXT_PUBLIC_COGNITO_DOMAIN, NEXT_PUBLIC_APP_CLIENT_ID } = process.env;
 
 export async function GET(request: NextRequest) {
+  const cookieStore = cookies();
   let authorizeParams = new URLSearchParams();
   const origin = request.nextUrl.origin;
 
@@ -28,7 +32,19 @@ export async function GET(request: NextRequest) {
   authorizeParams.append("code_challenge_method", "S256");
   authorizeParams.append("code_challenge", codeChallenge);
 
-  return NextResponse.redirect(
+  // Encrypt the code verifier
+  const encryptedCodeVerifier = encrypt(codeVerifier);
+
+  const response = NextResponse.redirect(
     `${NEXT_PUBLIC_COGNITO_DOMAIN}/oauth2/authorize?${authorizeParams.toString()}`,
   );
+
+  // Set the code verifier in an HTTP-only cookie
+  cookieStore.set("code_verifier", encryptedCodeVerifier, {
+    httpOnly: true,
+    secure: true,
+    sameSite: "strict",
+  });
+
+  return response;
 }

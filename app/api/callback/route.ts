@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { cookies } from "next/headers";
+import { decrypt } from "@/utils/encryption";
 
 const {
   NEXT_PUBLIC_COGNITO_DOMAIN,
@@ -8,16 +9,18 @@ const {
 } = process.env;
 
 export async function GET(request: NextRequest) {
+  const cookieStore = cookies();
+  const origin = request.nextUrl.origin;
+  const searchParams = request.nextUrl.searchParams;
+  const code = searchParams.get("code") as string;
+
+  if (!code) {
+    const error = searchParams.get("error");
+    return NextResponse.json({ error: error || "Unknown error" });
+  }
+
   try {
-    const origin = request.nextUrl.origin;
-    const searchParams = request.nextUrl.searchParams;
-    const code = searchParams.get("code") as string;
-
-    if (!code) {
-      const error = searchParams.get("error");
-      return NextResponse.json({ error: error || "Unknown error" });
-    }
-
+    const codeVerifier = decrypt(cookieStore.get("code_verifier")?.value);
     const authorizationHeader = `Basic ${Buffer.from(`${NEXT_PUBLIC_APP_CLIENT_ID}:${NEXT_PUBLIC_APP_CLIENT_SECRET}`).toString("base64")}`;
 
     const requestBody = new URLSearchParams({
@@ -25,9 +28,9 @@ export async function GET(request: NextRequest) {
       client_id: NEXT_PUBLIC_APP_CLIENT_ID as string,
       code: code,
       redirect_uri: `${origin}/api/auth/callback`,
+      code_verifier: codeVerifier,
     });
 
-    // Get tokens
     const res = await fetch(`${NEXT_PUBLIC_COGNITO_DOMAIN}/oauth2/token`, {
       method: "POST",
       headers: {
@@ -46,11 +49,24 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // Store tokens in cookies
-    const cookieStore = cookies();
-    cookieStore.set("id_token", data.id_token);
-    cookieStore.set("access_token", data.access_token);
-    cookieStore.set("refresh_token", data.refresh_token);
+    cookieStore.set("id_token", data.id_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      expires: Date.now() + 3600000,
+    });
+    cookieStore.set("access_token", data.access_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      expires: Date.now() + 900000,
+    });
+    cookieStore.set("refresh_token", data.refresh_token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      expires: Date.now() + 1209600000,
+    });
 
     return NextResponse.redirect(new URL("/", request.nextUrl));
   } catch (error) {
