@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
     httpOnly: true,
     secure: true,
     sameSite: "strict",
+    expires: Date.now() + 300000,
   });
 
   return response;
