@@ -1,8 +1,10 @@
+import { HabitType } from "@/utils/interfaces";
+
 export const habits = [
   {
     userId: "550e8400-e29b-41d4-a716-446655440000",
     habitId: "01F8MECHZX3TBDSZ7XRADM79XE",
-    type: "BasicHabit",
+    type: HabitType.Basic,
     title: "Morning Run",
     description: "Daily morning run around the park",
     streak: 5,
@@ -14,7 +16,7 @@ export const habits = [
   {
     userId: "550e8400-e29b-41d4-a716-446655440000",
     habitId: "01F8MECHZX3TBDSZ7XRADM79XG",
-    type: "cueBasedHabit",
+    type: HabitType.Cue,
     title: "Drink Water",
     description: "Drink a glass of water after waking up",
     streak: 10,
@@ -26,7 +28,7 @@ export const habits = [
   {
     userId: "550e8400-e29b-41d4-a716-446655440001",
     habitId: "01F8MECHZX3TBDSZ7XRADM79XH",
-    type: "DuoHabit",
+    type: HabitType.Duo,
     title: "Study Session",
     description: "Study with a partner for 2 hours",
     streak: 3,
@@ -38,7 +40,7 @@ export const habits = [
   {
     userId: "550e8400-e29b-41d4-a716-446655440003",
     habitId: "01F8MECHZX3TBDSZ7XRADM79XI",
-    type: "BasicHabit",
+    type: HabitType.Basic,
     title: "Read a Book",
     description: "Read a chapter of a book every day",
     streak: 7,
@@ -50,7 +52,7 @@ export const habits = [
   {
     userId: "550e8400-e29b-41d4-a716-446655440004",
     habitId: "01F8MECHZX3TBDSZ7XRADM79XJ",
-    type: "cueBasedHabit",
+    type: HabitType.Cue,
     title: "Meditation",
     description: "Meditate for 15 minutes after lunch",
     streak: 4,

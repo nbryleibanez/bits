@@ -1,4 +1,8 @@
-type HabitType = "BasicHabit" | "cueBasedHabit" | "DuoHabit";
+export enum HabitType {
+  Basic = "Basic",
+  Cue = "Cue",
+  Duo = "Duo",
+}
 
 export interface Habit {
   userId: string;
