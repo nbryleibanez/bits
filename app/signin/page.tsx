@@ -6,9 +6,9 @@ import { Separator } from "@/components/ui/separator";
 
 export default function SignInPage() {
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center px-5">
-      <div>
-        <h1>Habits</h1>
+    <div className="min-h-screen w-full flex flex-col">
+      <div className="flex flex-col gap-4 mb-6">
+        <h1 className="text-4xl font-semibold">Habits</h1>
         <p>Your research-based habit-tracking application.</p>
       </div>
       <SignInForm />

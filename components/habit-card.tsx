@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Habit } from "@/utils/interfaces";
 
 interface Props {
@@ -14,12 +15,16 @@ export default function HabitCard({ habit }: Props) {
     >
       <div className="w-full flex justify-between">
         <div>
-          <div className="text-red-600 text-3xl font-bold">{habit.streak}</div>
+          <div className="text-red-600 text-4xl font-bold">{habit.streak}</div>
           <div className="text-xs">streak</div>
         </div>
-        <div>photo</div>
+        <Avatar className="w-10 h-10">
+          <AvatarFallback>P</AvatarFallback>
+        </Avatar>
       </div>
-      <div>{habit.title}</div>
+      <div>
+        <p className="text-xl font-medium">{habit.title}</p>
+      </div>
     </Link>
   );
 }

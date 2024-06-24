@@ -43,7 +43,11 @@ export default function SignInForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input
+                  className="h-12 border-[#aaaaaa] rounded-full"
+                  type="email"
+                  {...field}
+                />
               </FormControl>
             </FormItem>
           )}
@@ -55,7 +59,11 @@ export default function SignInForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" {...field} />
+                <Input
+                  className="h-12 border-[#aaaaaa] rounded-full"
+                  type="password"
+                  {...field}
+                />
               </FormControl>
             </FormItem>
           )}
