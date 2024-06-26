@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import crypto from "crypto";
 import { encrypt } from "@/utils/encryption";
 
-const { NEXT_PUBLIC_COGNITO_DOMAIN, NEXT_PUBLIC_APP_CLIENT_ID } = process.env;
+const { COGNITO_DOMAIN, COGNITO_APP_CLIENT_ID } = process.env;
 
 export async function GET(request: NextRequest) {
   const cookieStore = cookies();
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     .replace(/=+$/, "");
 
   authorizeParams.append("response_type", "code");
-  authorizeParams.append("client_id", NEXT_PUBLIC_APP_CLIENT_ID as string);
+  authorizeParams.append("client_id", COGNITO_APP_CLIENT_ID as string);
   authorizeParams.append("redirect_uri", `${origin}/api/auth/callback`);
   authorizeParams.append("state", state);
   authorizeParams.append("identity_provider", "Google");
@@ -35,10 +35,6 @@ export async function GET(request: NextRequest) {
   // Encrypt the code verifier
   const encryptedCodeVerifier = encrypt(codeVerifier);
 
-  const response = NextResponse.redirect(
-    `${NEXT_PUBLIC_COGNITO_DOMAIN}/oauth2/authorize?${authorizeParams.toString()}`,
-  );
-
   // Set the code verifier in an HTTP-only cookie
   cookieStore.set("code_verifier", encryptedCodeVerifier, {
     httpOnly: true,
@@ -47,5 +43,7 @@ export async function GET(request: NextRequest) {
     expires: Date.now() + 300000,
   });
 
-  return response;
+  return NextResponse.redirect(
+    `${COGNITO_DOMAIN}/oauth2/authorize?${authorizeParams.toString()}`,
+  );
 }

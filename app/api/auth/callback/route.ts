@@ -2,11 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { decrypt } from "@/utils/encryption";
 
-const {
-  NEXT_PUBLIC_COGNITO_DOMAIN,
-  NEXT_PUBLIC_APP_CLIENT_ID,
-  NEXT_PUBLIC_APP_CLIENT_SECRET,
-} = process.env;
+const { COGNITO_DOMAIN, COGNITO_APP_CLIENT_ID, COGNITO_APP_CLIENT_SECRET } =
+  process.env;
 
 export async function GET(request: NextRequest) {
   const cookieStore = cookies();
@@ -21,17 +18,17 @@ export async function GET(request: NextRequest) {
 
   try {
     const codeVerifier = decrypt(cookieStore.get("code_verifier")?.value);
-    const authorizationHeader = `Basic ${Buffer.from(`${NEXT_PUBLIC_APP_CLIENT_ID}:${NEXT_PUBLIC_APP_CLIENT_SECRET}`).toString("base64")}`;
+    const authorizationHeader = `Basic ${Buffer.from(`${COGNITO_APP_CLIENT_ID}:${COGNITO_APP_CLIENT_SECRET}`).toString("base64")}`;
 
     const requestBody = new URLSearchParams({
       grant_type: "authorization_code",
-      client_id: NEXT_PUBLIC_APP_CLIENT_ID as string,
+      client_id: COGNITO_APP_CLIENT_ID as string,
       code: code,
       redirect_uri: `${origin}/api/auth/callback`,
       code_verifier: codeVerifier,
     });
 
-    const res = await fetch(`${NEXT_PUBLIC_COGNITO_DOMAIN}/oauth2/token`, {
+    const res = await fetch(`${COGNITO_DOMAIN}/oauth2/token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -59,13 +56,13 @@ export async function GET(request: NextRequest) {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
-      expires: Date.now() + 900000,
+      expires: Date.now() + 3600000,
     });
     cookieStore.set("refresh_token", data.refresh_token, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
-      expires: Date.now() + 1209600000,
+      expires: Date.now() + 2592000000,
     });
 
     return NextResponse.redirect(new URL("/", request.nextUrl));
