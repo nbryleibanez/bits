@@ -28,6 +28,8 @@ export async function GET(request: NextRequest) {
       code_verifier: codeVerifier,
     });
 
+    console.log('checkpoint')
+
     const res = await fetch(`${COGNITO_DOMAIN}/oauth2/token`, {
       method: "POST",
       headers: {
