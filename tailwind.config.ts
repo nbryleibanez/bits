@@ -18,6 +18,9 @@ const config = {
       },
     },
     extend: {
+      height: {
+        "pull-minus-padding": "calc(100% - 1.25rem)",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
