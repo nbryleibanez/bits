@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { decrypt } from "@/utils/encryption";
+import { encrypt, decrypt } from "@/utils/encryption";
+import { redirectError } from "@/utils/redirect-error";
 
 const { COGNITO_DOMAIN, COGNITO_APP_CLIENT_ID, COGNITO_APP_CLIENT_SECRET } =
   process.env;
@@ -17,7 +18,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const codeVerifier = decrypt(cookieStore.get("code_verifier")?.value);
+    const codeVerifier = decrypt(
+      cookieStore.get("code_verifier")?.value as string,
+    );
     const authorizationHeader = `Basic ${Buffer.from(`${COGNITO_APP_CLIENT_ID}:${COGNITO_APP_CLIENT_SECRET}`).toString("base64")}`;
 
     const requestBody = new URLSearchParams({
@@ -27,8 +30,6 @@ export async function GET(request: NextRequest) {
       redirect_uri: `${origin}/api/auth/callback`,
       code_verifier: codeVerifier,
     });
-
-    console.log('checkpoint')
 
     const res = await fetch(`${COGNITO_DOMAIN}/oauth2/token`, {
       method: "POST",
@@ -48,19 +49,23 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    cookieStore.set("id_token", data.id_token, {
+    const idToken = encrypt(data.id_token);
+    const accessToken = encrypt(data.access_token);
+    const refreshToken = encrypt(data.refresh_token);
+
+    cookieStore.set("idToken", idToken, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
       expires: Date.now() + 3600000,
     });
-    cookieStore.set("access_token", data.access_token, {
+    cookieStore.set("accessToken", accessToken, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
       expires: Date.now() + 3600000,
     });
-    cookieStore.set("refresh_token", data.refresh_token, {
+    cookieStore.set("refreshToken", refreshToken, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
@@ -69,6 +74,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.redirect(new URL("/", request.nextUrl));
   } catch (error) {
-    return NextResponse.json({ error: error });
+    return redirectError(request, error);
   }
 }

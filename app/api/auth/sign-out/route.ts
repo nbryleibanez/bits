@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { decrypt } from "@/utils/encryption";
 
 const { COGNITO_DOMAIN, COGNITO_APP_CLIENT_ID, COGNITO_APP_CLIENT_SECRET } =
   process.env;
@@ -9,15 +10,15 @@ const { COGNITO_DOMAIN, COGNITO_APP_CLIENT_ID, COGNITO_APP_CLIENT_SECRET } =
 export async function GET(request: NextRequest) {
   const cookieStore = cookies();
 
-  const idTokenExists = cookieStore.has("id_token");
-  const accessTokenExists = cookieStore.has("access_token");
-  const refreshTokenExists = cookieStore.has("refresh_token");
+  const idTokenExists = cookieStore.has("idToken");
+  const accessTokenExists = cookieStore.has("accessToken");
+  const refreshTokenExists = cookieStore.has("refreshToken");
 
   if (!refreshTokenExists) {
-    return NextResponse.redirect(new URL("/login", request.nextUrl));
+    return NextResponse.redirect(new URL("/signin", request.nextUrl));
   }
 
-  const token = cookieStore.get("refresh_token");
+  const token = decrypt(cookieStore.get("refreshToken")?.value as string);
   const authorizationHeader = `Basic ${Buffer.from(`${COGNITO_APP_CLIENT_ID}:${COGNITO_APP_CLIENT_SECRET}`).toString("base64")}`;
 
   const response = await fetch(`${COGNITO_DOMAIN}/oauth2/revoke`, {
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
       Authorization: authorizationHeader,
     },
     body: new URLSearchParams({
-      token: token?.value!,
+      token: token,
     }),
   });
 
@@ -42,17 +43,17 @@ export async function GET(request: NextRequest) {
 
   if (response.ok) {
     if (idTokenExists) {
-      cookieStore.delete("id_token");
+      cookieStore.delete("idToken");
     }
 
     if (accessTokenExists) {
-      cookieStore.delete("access_token");
+      cookieStore.delete("accessToken");
     }
 
     if (refreshTokenExists) {
-      cookieStore.delete("refresh_token");
+      cookieStore.delete("refreshToken");
     }
 
-    return NextResponse.redirect(new URL("/login", request.nextUrl));
+    return NextResponse.redirect(new URL("/signin", request.nextUrl));
   }
 }
