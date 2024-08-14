@@ -11,6 +11,7 @@ export function encrypt(text: string) {
   );
   let encrypted = cipher.update(text);
   encrypted = Buffer.concat([encrypted, cipher.final()]);
+
   return iv.toString("hex") + ":" + encrypted.toString("hex");
 }
 
@@ -25,5 +26,6 @@ export function decrypt(text: string) {
   );
   let decrypted = decipher.update(encryptedText);
   decrypted = Buffer.concat([decrypted, decipher.final()]);
+
   return decrypted.toString();
 }
