@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 
-const client = new DynamoDBClient({ region: "ap-southeast-1" });
+const client = new DynamoDBClient({});
 
 export async function GET(
   request: NextRequest,

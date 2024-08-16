@@ -1,0 +1,90 @@
+import { type NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+
+const { COGNITO_DOMAIN, COGNITO_APP_CLIENT_ID, COGNITO_APP_CLIENT_SECRET } =
+  process.env;
+
+export async function POST(req: NextRequest) {
+  try {
+    const cookieStore = cookies();
+    const { refreshToken } = await req.json();
+    const authorizationHeader = `Basic ${Buffer.from(`${COGNITO_APP_CLIENT_ID}:${COGNITO_APP_CLIENT_SECRET}`).toString("base64")}`;
+
+    const requestBody = new URLSearchParams({
+      grant_type: "refresh_token",
+      client_id: COGNITO_APP_CLIENT_ID as string,
+      refresh_token: refreshToken,
+    });
+
+    const response = await fetch(`${COGNITO_DOMAIN}/oauth2/token`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Authorization: authorizationHeader,
+      },
+      body: requestBody,
+    });
+
+    const tokenData = await response.json();
+
+    if (tokenData.error)
+      throw new Error(`${tokenData.error}: ${tokenData.error_description}`);
+
+    const idToken: string = tokenData.id_token;
+    const accessToken: string = tokenData.access_token;
+
+    cookieStore.set("idToken", idToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      expires: Date.now() + 3600000,
+    });
+    cookieStore.set("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      expires: Date.now() + 3600000,
+    });
+
+    if (!cookieStore.has("accessToken")) {
+      return new Response(
+        JSON.stringify({
+          message:
+            "Access token not found. Error has occured during setting cookies.",
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+    }
+
+    return new NextResponse(
+      JSON.stringify({
+        message: "Token refresh successful.",
+        idToken: idToken,
+        accessToken: accessToken,
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  } catch (e: any) {
+    return new Response(
+      JSON.stringify({
+        message: e.message,
+      }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  }
+}

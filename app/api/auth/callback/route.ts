@@ -1,11 +1,23 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { cookies } from "next/headers";
-import { encrypt, decrypt } from "@/utils/encryption";
+import { decrypt } from "@/utils/encryption";
 import redirectError from "@/utils/redirect-error";
 import verifyToken from "@/utils/verify-token";
 
-const { COGNITO_DOMAIN, COGNITO_APP_CLIENT_ID, COGNITO_APP_CLIENT_SECRET } =
-  process.env;
+import {
+  DynamoDBClient,
+  QueryCommand,
+  PutItemCommand,
+} from "@aws-sdk/client-dynamodb";
+
+const client = new DynamoDBClient({});
+
+const {
+  COGNITO_DOMAIN,
+  COGNITO_APP_CLIENT_ID,
+  COGNITO_APP_CLIENT_SECRET,
+  TABLE_USERS,
+} = process.env;
 
 export async function GET(req: NextRequest) {
   const cookieStore = cookies();
@@ -41,52 +53,75 @@ export async function GET(req: NextRequest) {
       body: requestBody,
     });
 
-    const data = await response.json();
+    const tokenData = await response.json();
 
     if (!response.ok) {
-      return redirectError(req, `${data.error}: ${data.error_description}`);
+      return redirectError(
+        req,
+        `${tokenData.error}: ${tokenData.error_description}`,
+      );
     }
 
-    const idToken = encrypt(data.id_token);
-    const accessToken = encrypt(data.access_token);
-    const refreshToken = encrypt(data.refresh_token);
-
-    cookieStore.set("idToken", idToken, {
+    cookieStore.set("idToken", tokenData.id_token, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
       expires: Date.now() + 3600000,
     });
-    cookieStore.set("accessToken", accessToken, {
+    cookieStore.set("accessToken", tokenData.access_token, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
       expires: Date.now() + 3600000,
     });
-    cookieStore.set("refreshToken", refreshToken, {
+    cookieStore.set("refreshToken", tokenData.refresh_token, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
       expires: Date.now() + 2592000000,
     });
 
+    if (cookieStore.has("code_verifier")) cookieStore.delete("code_verifier");
+
     try {
-      const { payload, error } = await verifyToken(data.access_token);
+      const { payload, error } = await verifyToken(tokenData.id_token, "id");
       if (error) throw error;
 
-      const res = await fetch(
-        `${req.nextUrl.origin}/api/users/${payload?.sub}`,
-      );
+      const command = new QueryCommand({
+        TableName: TABLE_USERS,
+        KeyConditionExpression: "userId = :userid",
+        ExpressionAttributeValues: {
+          ":userid": { S: payload?.sub as string },
+        },
+      });
 
-      const d = await res.json();
-      if (d.error) throw new Error(d.error);
+      const userData = await client.send(command);
 
-      console.log(d);
+      if (userData.Count == 0) {
+        // const res = await client.send(
+        //   new PutItemCommand({
+        //     TableName: TABLE_USERS,
+        //     Item: {
+        //       userId: { S: payload?.sub as string },
+        //       email: { S: payload?.email as string },
+        //       firstName: { S: payload?.email as string },
+        //       friends: { SS: [""] },
+        //       fullName: { S: payload?.email as string },
+        //       lastName: { S: payload?.email as string },
+        //       profilePicUrl: { S: payload?.email as string },
+        //     },
+        //   }),
+        // );
+        //
+        // console.log(res);
+
+        return NextResponse.redirect(new URL("/onboarding", req.nextUrl));
+      } else {
+        return NextResponse.redirect(new URL("/", req.nextUrl));
+      }
     } catch (e) {
       return redirectError(req, e);
     }
-
-    return NextResponse.redirect(new URL("/", req.nextUrl));
   } catch (e) {
     return redirectError(req, e);
   }
