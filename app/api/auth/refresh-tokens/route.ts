@@ -1,12 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 const { COGNITO_DOMAIN, COGNITO_APP_CLIENT_ID, COGNITO_APP_CLIENT_SECRET } =
   process.env;
 
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = cookies();
     const { refreshToken } = await req.json();
     const authorizationHeader = `Basic ${Buffer.from(`${COGNITO_APP_CLIENT_ID}:${COGNITO_APP_CLIENT_SECRET}`).toString("base64")}`;
 
@@ -33,34 +31,6 @@ export async function POST(req: NextRequest) {
     const idToken: string = tokenData.id_token;
     const accessToken: string = tokenData.access_token;
 
-    cookieStore.set("idToken", idToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      expires: Date.now() + 3600000,
-    });
-    cookieStore.set("accessToken", accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      expires: Date.now() + 3600000,
-    });
-
-    if (!cookieStore.has("accessToken")) {
-      return new Response(
-        JSON.stringify({
-          message:
-            "Access token not found. Error has occured during setting cookies.",
-        }),
-        {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      );
-    }
-
     return new NextResponse(
       JSON.stringify({
         message: "Token refresh successful.",
@@ -69,9 +39,6 @@ export async function POST(req: NextRequest) {
       }),
       {
         status: 200,
-        headers: {
-          "Content-Type": "application/json",
-        },
       },
     );
   } catch (e: any) {

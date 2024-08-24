@@ -12,7 +12,6 @@ export default async function verifyToken(token: string, tokenUse: string) {
 
   try {
     const payload = await verifier.verify(token);
-    console.log("Token is valid. Payload:", payload);
 
     return { payload, error: null };
   } catch (error) {

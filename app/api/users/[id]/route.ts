@@ -1,10 +1,14 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  GetItemCommand,
+  PutItemCommand,
+} from "@aws-sdk/client-dynamodb";
 
 const client = new DynamoDBClient({});
 
 export async function GET(
-  request: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } },
 ) {
   try {
@@ -24,3 +28,32 @@ export async function GET(
     return NextResponse.json({ error: error.message });
   }
 }
+
+// export async function POST(
+//   req: NextRequest,
+//   { params }: { params: { id: string } },
+// ) {
+//
+//   try {
+//
+//     const res = await client.send(new PutItemCommand({
+//         TableName: TABLE_USERS,
+//         Item: {
+//           userId: { S: payload?.sub as string },
+//           username: { S: "wer" },
+//           email: { S: payload?.email as string },
+//           firstName: { S: payload?.email as string },
+//           friends: { SS: [""] },
+//           fullName: { S: payload?.email as string },
+//           lastName: { S: payload?.email as string },
+//           profilePicUrl: { S: payload?.email as string },
+//         },
+//       }),
+//     );
+//
+//     console.log(res);
+//   } catch (e) {
+//
+//   }
+//   return;
+// }

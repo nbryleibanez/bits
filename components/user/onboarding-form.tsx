@@ -1,11 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Form,
   FormControl,
@@ -21,6 +23,9 @@ const formSchema = z.object({
 });
 
 export default function OnboardingForm() {
+  const router = useRouter();
+  const { toast } = useToast();
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -30,10 +35,31 @@ export default function OnboardingForm() {
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-  };
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const res = await fetch(`${origin}/api/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: values.username,
+        firstName: values.firstName,
+        lastName: values.lastName,
+      }),
+    });
 
+    if (!res.ok) {
+      toast({
+        variant: "destructive",
+        title: "Something went wrong.",
+        description: "We're fixing this, Houston.",
+      });
+    }
+
+    if (res.ok) {
+      router.push("/");
+    }
+  };
   return (
     <div>
       <Form {...form}>

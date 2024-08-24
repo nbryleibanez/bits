@@ -98,23 +98,6 @@ export async function GET(req: NextRequest) {
       const userData = await client.send(command);
 
       if (userData.Count == 0) {
-        // const res = await client.send(
-        //   new PutItemCommand({
-        //     TableName: TABLE_USERS,
-        //     Item: {
-        //       userId: { S: payload?.sub as string },
-        //       email: { S: payload?.email as string },
-        //       firstName: { S: payload?.email as string },
-        //       friends: { SS: [""] },
-        //       fullName: { S: payload?.email as string },
-        //       lastName: { S: payload?.email as string },
-        //       profilePicUrl: { S: payload?.email as string },
-        //     },
-        //   }),
-        // );
-        //
-        // console.log(res);
-
         return NextResponse.redirect(new URL("/onboarding", req.nextUrl));
       } else {
         return NextResponse.redirect(new URL("/", req.nextUrl));
