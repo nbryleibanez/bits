@@ -58,6 +58,7 @@ export async function POST(request: NextRequest) {
           title: { S: body.title as string },
           streak: { N: "0" },
           createdDate: { S: dateNow as string },
+          isLogged: { BOOL: false },
         },
       })
     )

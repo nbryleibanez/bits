@@ -54,7 +54,7 @@ export default async function HabitPage({ params }: { params: { id: string } }) 
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <LogHabitButton />
+          <LogHabitButton streak={habit.streak.N} isLogged={habit.isLogged.BOOL} />
           <DeleteHabitButton />
         </CardFooter>
       </Card>

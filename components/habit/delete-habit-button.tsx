@@ -27,7 +27,6 @@ export default function DeleteHabitButton() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ id: params.id }),
     });
 
     if (!res.ok) {
