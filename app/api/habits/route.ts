@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { cookies, headers } from "next/headers"
+import { cookies } from "next/headers"
 import { ulid } from "ulid"
 import verifyToken from "@/utils/verify-token"
 import { DynamoDBClient, PutItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";

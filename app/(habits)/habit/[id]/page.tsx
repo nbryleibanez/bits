@@ -1,46 +1,63 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import DeleteHabitButton from "@/components/habit/delete-habit-button";
+import LogHabitButton from "@/components/habit/log-habit-button";
 
 import { ArrowLeftIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  CardHeader,
+  CardContent,
+  CardFooter,
+  Card,
+} from "@/components/ui/card";
 
-import { habits } from "@/data/habits";
+export default async function HabitPage({ params }: { params: { id: string } }) {
 
-export default function HabitPage({ params }: { params: { id: string } }) {
-  const getHabit = (id: string) => {
-    return habits.find((habit) => habit.habitId === id);
-  };
+  const res = await fetch(`${process.env.SITE}/api/habits/${params.id}`, {
+    method: "GET",
+    headers: {
+      Cookie: cookies().toString(),
+      "Content-Type": "application/json",
+    },
+  })
 
-  const data = getHabit(params.id);
+  const { habit } = await res.json()
 
   return (
-    <div className="flex flex-col gap-4">
+    <main className="flex flex-col gap-4 p-6">
       <Link href="/">
         <ArrowLeftIcon className="h-8 w-8" />
       </Link>
-      <div className="flex flex-col gap-5 p-6 rounded-3xl bg-white">
-        <div className="flex justify-between">
-          <div className="flex flex-col gap-1">
-            <p className="text-sm">Basic Habit</p>
-            <p className="text-2xl font-medium">{data?.title}</p>
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <div className="flex justify-between">
+            <div className="flex flex-col gap-1">
+              <p className="text-sm">Basic Habit</p>
+              <p className="text-2xl font-medium">{habit.title.S}</p>
+            </div>
+            <div className="flex flex-col gap-1">
+              <p className="text-sm text-end">Streak</p>
+              <p className="text-5xl font-semibold text-end">{habit.streak.N}</p>
+            </div>
           </div>
-          <div className="flex flex-col gap-1">
-            <p className="text-sm text-end">Streak</p>
-            <p className="text-5xl font-semibold text-end">{data?.streak}</p>
-          </div>
-        </div>
+        </CardHeader>
         <Separator />
-        <div>
+        <CardContent>
           <div className="flex flex-col gap-2">
             <div className="text-sm">Participants</div>
             <Avatar className="w-10 h-10">
               <AvatarFallback>P</AvatarFallback>
             </Avatar>
           </div>
-        </div>
-      </div>
-      <Button className="h-12 rounded-3xl">Log Habit</Button>
-    </div>
+        </CardContent>
+        <CardFooter className="flex flex-col gap-4">
+          <LogHabitButton />
+          <DeleteHabitButton />
+        </CardFooter>
+      </Card>
+    </main>
   );
 }
