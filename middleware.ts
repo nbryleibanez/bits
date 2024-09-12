@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
+import { setSecureCookie } from "@/utils/set-secure-cookie";
 
 const publicRoutes = ["/signin", "/signup"];
 
@@ -32,18 +33,16 @@ export async function middleware(req: NextRequest) {
 
       const data = await res.json();
 
-      console.log("new tokens", data)
-
       response.cookies.set("access_token", data.accessToken, {
         httpOnly: true,
         secure: true,
-        sameSite: "strict",
+        sameSite: "lax",
         maxAge: 3600,
       });
       response.cookies.set("id_token", data.idToken, {
         httpOnly: true,
         secure: true,
-        sameSite: "strict",
+        sameSite: "lax",
         maxAge: 3600,
       });
     }

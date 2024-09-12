@@ -2,6 +2,7 @@
 
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -35,14 +36,18 @@ export default function BasicHabitForm() {
   });
 
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
-    const res = await fetch(`${window.location.origin}/api/auth/signin`, {
+    const input = {
+      title: form.getValues().title,
+      type: "basic"
+    }
+
+    const res = await fetch(`${window.location.origin}/api/habits`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(values),
+      body: JSON.stringify(input),
     });
-    console.log(res)
 
     if (!res.ok) {
       toast({
@@ -53,14 +58,15 @@ export default function BasicHabitForm() {
     } else {
       toast({
         title: "Success",
-        description: "You've signed in!",
+        description: "Habit successfully created.",
       })
 
-      router.push(`/`)
+      router.push('/')
+      router.refresh()
     }
   };
-  return (
 
+  return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6">
         <FormField

@@ -1,12 +1,21 @@
 import Link from "next/link";
-import { habits } from "@/data/habits";
+import { cookies } from "next/headers";
 import HabitCard from "@/components/habit-card";
 import { PlusIcon } from "@radix-ui/react-icons"
 
-export default function HabitList() {
+export default async function HabitList() {
+  const res = await fetch(`${process.env.SITE}/api/habits`, {
+    method: "GET",
+    headers: {
+      Cookie: cookies().toString(),
+    },
+  });
+
+  const { habits } = await res.json();
+
   return (
     <div className="h-fit w-full grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-      {habits.map((habit) => (
+      {habits.map((habit: any) => (
         <HabitCard key={habit.habitId} habit={habit} />
       ))}
       <Link

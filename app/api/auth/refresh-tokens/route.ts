@@ -31,27 +31,8 @@ export async function POST(req: NextRequest) {
     const idToken: string = tokenData.id_token;
     const accessToken: string = tokenData.access_token;
 
-    return new NextResponse(
-      JSON.stringify({
-        message: "Token refresh successful.",
-        idToken: idToken,
-        accessToken: accessToken,
-      }),
-      {
-        status: 200,
-      },
-    );
+    return NextResponse.json({ idToken, accessToken }, { status: 200 });
   } catch (e: any) {
-    return new Response(
-      JSON.stringify({
-        message: e.message,
-      }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-    );
+    return NextResponse.json({ message: e.message }, { status: 500 });
   }
 }
