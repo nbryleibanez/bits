@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "bits",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.650.0",
     "@aws-sdk/client-dynamodb": "^3.624.0",
     "@hookform/resolvers": "^3.6.0",
     "@radix-ui/react-avatar": "^1.0.4",
@@ -27,6 +28,7 @@
     "react-hook-form": "^7.51.5",
     "tailwind-merge": "^2.3.0",
     "tailwindcss-animate": "^1.0.7",
+    "ulid": "^2.3.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

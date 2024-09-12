@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
@@ -19,15 +19,10 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 
 const FormSchema = z.object({
-  email: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
-  }),
-  password: z.string().min(8, {
-    message: "Password must be at least 8 characters.",
-  }),
+  title: z.string()
 });
 
-export default function SignInForm() {
+export default function BasicHabitForm() {
   const status = useFormStatus();
   const router = useRouter();
   const { toast } = useToast()
@@ -35,8 +30,7 @@ export default function SignInForm() {
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      title: "",
     },
   });
 
@@ -65,31 +59,18 @@ export default function SignInForm() {
       router.push(`/`)
     }
   };
-
   return (
+
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6">
         <FormField
           control={form.control}
-          name="email"
+          name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>Habit Title</FormLabel>
               <FormControl>
-                <Input placeholder="m@example.com" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Password</FormLabel>
-              <FormControl>
-                <Input type="password" {...field} />
+                <Input {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -98,6 +79,5 @@ export default function SignInForm() {
         <Button disabled={status.pending} className="w-full" type="submit">Submit</Button>
       </form>
     </Form>
-  );
+  )
 }
-

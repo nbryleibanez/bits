@@ -6,7 +6,5 @@ export default function redirectError(req: NextRequest, e: any) {
 
   console.log("Error from Redirect Error: ", e);
 
-  return NextResponse.redirect(
-    new URL(`/error?${params.toString()}`, req.nextUrl),
-  );
+  return NextResponse.redirect(new URL(`/error?${params.toString()}`, req.nextUrl));
 }

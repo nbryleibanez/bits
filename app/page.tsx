@@ -4,10 +4,11 @@ import NavBar from "@/components/nav-bar";
 
 export default function Home() {
   return (
-    <main className="relative flex h-dvh flex-col gap-4">
-      <h1 className="text-lg font-bold">Home</h1>
-      <ProfileCard />
-      <HabitList />
+    <main className="relative flex h-dvh flex-col gap-4 p-5">
+      <div className="h-full flex flex-col md:flex-row gap-4">
+        <ProfileCard />
+        <HabitList />
+      </div>
       <NavBar />
     </main>
   );

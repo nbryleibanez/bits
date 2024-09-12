@@ -1,15 +1,35 @@
 import Link from "next/link";
+import { cookies, headers } from "next/headers"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-export default function ProfileCard() {
+export default async function ProfileCard() {
+  let res = await fetch(`${process.env.SITE}/api/users/me`, {
+    method: "GET",
+    headers: {
+      Cookie: cookies().toString(),
+    },
+    cache: "force-cache",
+  })
+
+  let { Item } = await res.json()
+
   return (
     <Link
       href="/user/me"
-      className="h-20 flex p-4 gap-4 bg-blue-500 rounded-xl text-white"
+      className="h-20 md:h-full md:w-60 flex md:flex-col justify-between md:justify-start p-4 gap-4 md:gap-12 bg-primary rounded-xl text-white"
     >
-      <div className="h-12 w-12 bg-gray-300 rounded-full"></div>
-      <div>
-        <div>Juan Dela Cruz</div>
-        <div>@juandelacruz</div>
+      <div className="flex items-center">
+        <h1 className="text-xl font-bold md:text-3xl">Home</h1>
+      </div>
+      <div className="flex md:flex-col gap-4">
+        <Avatar className="h-12 w-12">
+          <AvatarImage src={Item.profilePicUrl.S} />
+          <AvatarFallback>S</AvatarFallback>
+        </Avatar>
+        <div>
+          <div className="md:text-xl font-semibold">{Item.fullName.S}</div>
+          <div className="md:text-xl">@{Item.username.S}</div>
+        </div>
       </div>
     </Link>
   );

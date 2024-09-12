@@ -1,44 +1,81 @@
 "use client";
 
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 
-const formSchema = z.object({
-  email: z.string(),
+const FormSchema = z.object({
+  email: z.string().min(2, {
+    message: "Username must be at least 2 characters.",
+  }),
   password: z.string(),
+  confirmpassword: z.string(),
 });
 
-export default function SignInForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+export default function SignUpForm() {
+  const router = useRouter();
+  const { toast } = useToast()
+
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
     defaultValues: {
       email: "",
       password: "",
+      confirmpassword: "",
     },
   });
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof FormSchema>) => {
+    console.log("values", values);
+
+    const res = await fetch(`${window.location.origin}/api/auth/signup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(values),
+    });
+
+    console.log("res", res);
+
+    const data = await res.json();
+    console.log(data);
+
+    if (!res.ok) {
+      toast({
+        variant: "destructive",
+        title: "Something went wrong.",
+        description: "We're fixing this, Houston.",
+      })
+    } else {
+      toast({
+        title: "Success",
+        description: "We've sent you an email to verify your account.",
+      })
+
+      let searchParams = new URLSearchParams();
+      searchParams.set("email", values.email);
+
+      router.push(`/verify?${searchParams}`)
+    }
   };
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="w-full flex flex-col gap-4"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6">
         <FormField
           control={form.control}
           name="email"
@@ -46,12 +83,9 @@ export default function SignInForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input
-                  className="border-[#aaaaaa] rounded-xl"
-                  type="email"
-                  {...field}
-                />
+                <Input placeholder="example@gmail.com" {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -62,35 +96,26 @@ export default function SignInForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input
-                  className="border-[#aaaaaa] rounded-xl"
-                  type="password"
-                  {...field}
-                />
+                <Input type="password" {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
         <FormField
           control={form.control}
-          name="confirm-password"
+          name="confirmpassword"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Confirm Password</FormLabel>
               <FormControl>
-                <Input
-                  className="border-[#aaaaaa] rounded-xl"
-                  type="password"
-                  {...field}
-                />
+                <Input type="password" {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
-        <Link className="text-sm font-light" href="/forgot-password">
-          Forgot Password?
-        </Link>
-        <Button className="w-full rounded-xl bg-primary">Sign Up</Button>
+        <Button className="w-full" type="submit">Submit</Button>
       </form>
     </Form>
   );

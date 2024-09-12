@@ -16,13 +16,18 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 
+interface Props {
+  firstName: string;
+  lastName: string;
+}
+
 const formSchema = z.object({
   username: z.string(),
   firstName: z.string(),
   lastName: z.string(),
 });
 
-export default function OnboardingForm() {
+export default function OnboardingForm({ firstName, lastName }: Props) {
   const router = useRouter();
   const { toast } = useToast();
 
@@ -30,8 +35,8 @@ export default function OnboardingForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       username: "",
-      firstName: "",
-      lastName: "",
+      firstName: firstName,
+      lastName: lastName,
     },
   });
 
@@ -40,6 +45,7 @@ export default function OnboardingForm() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Operation-Type": "Onboarding",
       },
       body: JSON.stringify({
         username: values.username,
@@ -60,6 +66,7 @@ export default function OnboardingForm() {
       router.push("/");
     }
   };
+
   return (
     <div>
       <Form {...form}>
@@ -75,7 +82,7 @@ export default function OnboardingForm() {
                 <FormLabel>Username</FormLabel>
                 <FormControl>
                   <Input
-                    className="h-12 border-[#aaaaaa] rounded-full"
+                    className="h-12 border-[#aaaaaa]"
                     {...field}
                   />
                 </FormControl>
@@ -90,7 +97,7 @@ export default function OnboardingForm() {
                 <FormLabel>First Name</FormLabel>
                 <FormControl>
                   <Input
-                    className="h-12 border-[#aaaaaa] rounded-full"
+                    className="h-12 border-[#aaaaaa]"
                     {...field}
                   />
                 </FormControl>
@@ -105,14 +112,14 @@ export default function OnboardingForm() {
                 <FormLabel>Last Name</FormLabel>
                 <FormControl>
                   <Input
-                    className="h-12 border-[#aaaaaa] rounded-full"
+                    className="h-12 border-[#aaaaaa]"
                     {...field}
                   />
                 </FormControl>
               </FormItem>
             )}
           />
-          <Button className="w-full h-12 rounded-3xl bg-primary">Submit</Button>
+          <Button className="w-full h-12 font-bold">Submit</Button>
         </form>
       </Form>
     </div>

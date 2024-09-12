@@ -8,7 +8,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Bits",
-  description: "Your research-based habit tracker.",
+  description: "A habit-tracker.",
 };
 
 export default function RootLayout({
@@ -18,7 +18,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen relative p-5`}>
+      <body className={`${inter.className} w-full min-h-screen relative`}>
         {children}
         <Toaster />
       </body>

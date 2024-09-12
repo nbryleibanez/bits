@@ -16,6 +16,8 @@ export function encrypt(text) {
 }
 
 export function decrypt(text) {
+  if (!text) return
+
   const textParts = text.split(":");
   const iv = Buffer.from(textParts.shift(), "hex");
   const encryptedText = Buffer.from(textParts.join(":"), "hex");
@@ -27,5 +29,6 @@ export function decrypt(text) {
   let decrypted = decipher.update(encryptedText);
   decrypted = Buffer.concat([decrypted, decipher.final()]);
 
+  console.log(decrypted.toString)
   return decrypted.toString();
 }

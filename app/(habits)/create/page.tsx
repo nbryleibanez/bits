@@ -3,7 +3,7 @@ import NavBar from "@/components/nav-bar";
 
 export default function CreatePage() {
   return (
-    <main>
+    <main className="p-5">
       <h1 className="font-semibold mb-4">Choose a type</h1>
       <div className="flex flex-col gap-4">
         <Link className="bg-white rounded-3xl px-8 py-6" href="/create/basic">

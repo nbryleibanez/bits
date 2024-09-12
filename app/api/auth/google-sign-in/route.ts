@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-
 import crypto from "crypto";
+
 import { encrypt } from "@/utils/encryption";
-import redirectError from "@/utils/redirect-error";
 
 const { COGNITO_DOMAIN, COGNITO_APP_CLIENT_ID } = process.env;
 
@@ -30,25 +29,16 @@ export async function GET(request: NextRequest) {
     authorizeParams.append("redirect_uri", `${origin}/api/auth/callback`);
     authorizeParams.append("state", state);
     authorizeParams.append("identity_provider", "Google");
-    authorizeParams.append("scope", "profile email openid");
+    authorizeParams.append("scope", "profile email openid aws.cognito.signin.user.admin");
     authorizeParams.append("code_challenge_method", "S256");
     authorizeParams.append("code_challenge", codeChallenge);
 
     // Encrypt the code verifier
     const encryptedCodeVerifier = encrypt(codeVerifier);
+    cookieStore.set("code_verifier", encryptedCodeVerifier, { maxAge: 300 });
 
-    // Set the code verifier in an HTTP-only cookie
-    cookieStore.set("code_verifier", encryptedCodeVerifier, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      expires: Date.now() + 300000,
-    });
-
-    return NextResponse.redirect(
-      `${COGNITO_DOMAIN}/oauth2/authorize?${authorizeParams.toString()}`,
-    );
+    return NextResponse.redirect(new URL(`${COGNITO_DOMAIN}/oauth2/authorize?${authorizeParams.toString()}`));
   } catch (error: any) {
-    return redirectError(request, error);
+    console.error(error);
   }
 }

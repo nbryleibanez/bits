@@ -8,18 +8,19 @@ export async function middleware(req: NextRequest) {
   const cookieStore = cookies();
   const path: string = req.nextUrl.pathname;
 
-  const hasRefreshToken = cookieStore.has("refreshToken");
+  const hasRefreshToken = cookieStore.has("refresh_token");
 
   if (
     !hasRefreshToken &&
     !publicRoutes.some((route: string) => path.startsWith(route))
   ) {
+    console.log("redirecting to signin");
     return NextResponse.redirect(new URL("/signin", req.nextUrl));
   } else if (hasRefreshToken) {
-    const hasAccessToken = cookieStore.has("accessToken");
+    const hasAccessToken = cookieStore.has("access_token");
 
     if (!hasAccessToken) {
-      const refreshToken = cookieStore.get("refreshToken")?.value;
+      const refreshToken = cookieStore.get("refresh_token")?.value;
 
       const res = await fetch(`${req.nextUrl.origin}/api/auth/refresh-tokens`, {
         method: "POST",
@@ -31,17 +32,19 @@ export async function middleware(req: NextRequest) {
 
       const data = await res.json();
 
-      response.cookies.set("accessToken", data.accessToken, {
+      console.log("new tokens", data)
+
+      response.cookies.set("access_token", data.accessToken, {
         httpOnly: true,
         secure: true,
         sameSite: "strict",
-        expires: Date.now() + 3600000,
+        maxAge: 3600,
       });
-      response.cookies.set("idToken", data.idToken, {
+      response.cookies.set("id_token", data.idToken, {
         httpOnly: true,
         secure: true,
         sameSite: "strict",
-        expires: Date.now() + 3600000,
+        maxAge: 3600,
       });
     }
 
