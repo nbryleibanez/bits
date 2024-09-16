@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { setSecureCookie } from "@/utils/set-secure-cookie";
 
 const publicRoutes = ["/signin", "/signup"];
 
@@ -15,7 +14,6 @@ export async function middleware(req: NextRequest) {
     !hasRefreshToken &&
     !publicRoutes.some((route: string) => path.startsWith(route))
   ) {
-    console.log("redirecting to signin");
     return NextResponse.redirect(new URL("/signin", req.nextUrl));
   } else if (hasRefreshToken) {
     const hasAccessToken = cookieStore.has("access_token");
@@ -62,6 +60,7 @@ export const config = {
     "/signup",
     "/onboarding",
     "/habit/:path*",
+    "/friends",
     /*
      * Match all request paths except for the ones starting with:
      * - api (API routes)

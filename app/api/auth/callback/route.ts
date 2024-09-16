@@ -1,38 +1,34 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { cookies } from "next/headers";
 import { decrypt } from "@/utils/encryption";
-import { setSecureCookie } from "@/utils/set-secure-cookie";
+import { setCookie } from "@/utils/set-cookie";
 import redirectError from "@/utils/redirect-error";
-import verifyToken from "@/utils/verify-token";
+import { verifyToken } from "@/utils/verify-token";
 
-const {
-  COGNITO_DOMAIN,
-  COGNITO_APP_CLIENT_ID,
-  COGNITO_APP_CLIENT_SECRET,
-} = process.env;
+const { COGNITO_DOMAIN, COGNITO_APP_CLIENT_ID, COGNITO_APP_CLIENT_SECRET } = process.env;
 
-export async function GET(req: NextRequest) {
-  const cookieStore = cookies();
-  const origin = req.nextUrl.origin;
-  const searchParams = req.nextUrl.searchParams;
-
-  const encryptedCodeVerifier = cookieStore.get("code_verifier")?.value as string;
-  const code = searchParams.get("code") as string;
-
-  if (!code) {
-    const error = searchParams.get("error");
-    return NextResponse.json({ error: error || "Internal Server Error" }, { status: 500 })
-  }
-
-  if (!encryptedCodeVerifier) {
-    return redirectError(req, "Cookie code_verifier not found. Please try again.")
-  }
-
+export async function GET(request: NextRequest) {
   try {
+    const cookieStore = cookies();
+    const origin = request.nextUrl.origin;
+    const searchParams = request.nextUrl.searchParams;
+
+    const encryptedCodeVerifier = cookieStore.get("code_verifier")?.value as string;
+    const code = searchParams.get("code") as string;
+
+    if (!code) {
+      const error = searchParams.get("error");
+      return NextResponse.json({ error: error || "Internal Server Error" }, { status: 500 })
+    }
+
+    if (!encryptedCodeVerifier) {
+      return redirectError(request, "Cookie code_verifier not found. Please try again.")
+    }
+
     const codeVerifier = decrypt(encryptedCodeVerifier);
 
     if (!codeVerifier) {
-      return redirectError(req, "Code verifier not found. Please try again.")
+      return redirectError(request, "Code verifier not found. Please try again.")
     }
 
     const authorizationHeader = `Basic ${Buffer.from(`${COGNITO_APP_CLIENT_ID}:${COGNITO_APP_CLIENT_SECRET}`).toString("base64")}`;
@@ -58,33 +54,25 @@ export async function GET(req: NextRequest) {
 
     if (!response.ok) {
       return redirectError(
-        req,
+        request,
         `${tokenData.error}: ${tokenData.error_description}`,
       );
     }
 
-    setSecureCookie(cookieStore, "id_token", tokenData.id_token, 3600);
-    setSecureCookie(cookieStore, "access_token", tokenData.access_token, 3600);
-    setSecureCookie(cookieStore, "refresh_token", tokenData.refresh_token, 2592000);
+    setCookie(cookieStore, "id_token", tokenData.id_token, 3600);
+    setCookie(cookieStore, "access_token", tokenData.access_token, 3600);
+    setCookie(cookieStore, "refresh_token", tokenData.refresh_token, 2592000);
 
     if (cookieStore.has("code_verifier")) cookieStore.delete("code_verifier");
 
-    try {
-      const { payload, error } = await verifyToken(tokenData.id_token, "id");
+    const payload = await verifyToken(tokenData.id_token, "id");
+    if (!payload) throw Error("Invalid token")
 
-      if (error || payload === null) throw error;
+    // Check if the user is onboarded
+    if (payload['custom:onboarded'] === 'false') return NextResponse.redirect(new URL("/onboarding", request.nextUrl));
 
-      console.log(payload)
-
-      // Check if the user is onboarded
-      if (payload['custom:onboarded'] === 'false') return NextResponse.redirect(new URL("/onboarding", req.nextUrl));
-
-      return NextResponse.redirect(new URL("/", req.nextUrl));
-    } catch (e) {
-      return redirectError(req, e);
-      return NextResponse.json({ error: e }, { status: 500 })
-    }
+    return NextResponse.redirect(new URL("/", request.nextUrl));
   } catch (e) {
-    return redirectError(req, e);
+    return redirectError(request, e);
   }
 }

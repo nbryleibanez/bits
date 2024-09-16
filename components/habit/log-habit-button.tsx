@@ -33,6 +33,7 @@ export default function LogHabitButton({ streak, isLogged }: Props) {
       });
       return;
     }
+
     toast({
       title: "Success",
       description: "Habit logged.",

@@ -11,11 +11,11 @@ export default async function HabitList() {
     },
   });
 
-  const { habits } = await res.json();
+  const { Items } = await res.json();
 
   return (
     <div className="h-fit w-full grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
-      {habits.map((habit: any) => (
+      {Items.map((habit: any) => (
         <HabitCard key={habit.habitId} habit={habit} />
       ))}
       <Link

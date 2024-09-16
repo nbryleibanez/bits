@@ -10,7 +10,7 @@ interface Props {
 export default function HabitCard({ habit }: Props) {
   return (
     <Link
-      href={`/habit/${habit.habitId.S}`}
+      href={`/habit/${habit.habit_id.S}`}
       className="aspect-square p-4 flex flex-col justify-between bg-white rounded-3xl shadow-md"
     >
       <div className="w-full flex justify-between">

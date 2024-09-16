@@ -1,12 +1,15 @@
 "use client"
 
-import { useFormStatus } from "react-dom";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   Form,
   FormControl,
@@ -15,17 +18,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
 
 const FormSchema = z.object({
-  title: z.string()
+  title: z.string().nonempty("Title is required"),
 });
 
 export default function BasicHabitForm() {
-  const status = useFormStatus();
   const router = useRouter();
   const { toast } = useToast()
+  const [loading, setLoading] = useState(false)
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -49,20 +50,24 @@ export default function BasicHabitForm() {
     });
 
     if (!res.ok) {
-      toast({
+      const error = await res.json()
+
+      return toast({
         variant: "destructive",
-        title: "Something went wrong.",
+        title: error.error,
         description: "We're fixing this, Houston.",
       })
-    } else {
-      toast({
-        title: "Success",
-        description: "Habit successfully created.",
-      })
-
-      router.push('/')
-      router.refresh()
     }
+
+    toast({
+      title: "Success",
+      description: "Habit successfully created.",
+    })
+
+    const { habitId } = await res.json()
+
+    router.push(`/habit/${habitId}`)
+    router.refresh()
   };
 
   return (
@@ -75,13 +80,15 @@ export default function BasicHabitForm() {
             <FormItem>
               <FormLabel>Habit Title</FormLabel>
               <FormControl>
-                <Input {...field} />
               </FormControl>
+              <Input {...field} />
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button disabled={status.pending} className="w-full" type="submit">Submit</Button>
+        <Button onClick={() => setLoading(false)} disabled={loading} className="w-full" type="submit">
+          {loading ? <LoadingSpinner /> : "Submit"}
+        </Button>
       </form>
     </Form>
   )

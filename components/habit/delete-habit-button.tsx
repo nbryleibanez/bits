@@ -1,9 +1,11 @@
 "use client"
 
+import { useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
+import { LoadingSpinner } from "@/components/ui/loading-spinner"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +23,11 @@ export default function DeleteHabitButton() {
   const params = useParams();
   const { toast } = useToast();
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const handleDelete = async () => {
+    setIsLoading(true)
+
     const res = await fetch(`${window.location.origin}/api/habits/${params.id}`, {
       method: "DELETE",
       headers: {
@@ -51,8 +57,13 @@ export default function DeleteHabitButton() {
   return (
     <div className="w-full">
       <AlertDialog>
-        <AlertDialogTrigger className="w-full">
-          <Button variant="outline" className="w-full h-12">Delete</Button>
+        <AlertDialogTrigger
+          className="w-full"
+          asChild
+        >
+          <Button disabled={isLoading} variant="outline" className="w-full h-12">
+            {isLoading ? <LoadingSpinner /> : "Delete"}
+          </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>

@@ -1,59 +1,34 @@
 import { type NextRequest, NextResponse } from "next/server";
-import {
-  DynamoDBClient,
-  GetItemCommand,
-  PutItemCommand,
-} from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
+import { validateRequest } from "@/helpers/auth/validate-request";
+import { unauthorizedResponse, internalServerErrorResponse } from "@/helpers/http/responses";
 
 const client = new DynamoDBClient({});
+const { DYNAMODB_TABLE_USERS } = process.env;
 
 export async function GET(
-  req: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } },
 ) {
   try {
-    const command = new GetItemCommand({
-      TableName: process.env.TABLE_USERS,
-      Key: {
-        userId: { S: params.id },
-      },
-    });
+    const payload = await validateRequest(request);
+    if (!payload) return unauthorizedResponse();
 
-    const data = await client.send(command);
+    const { $metadata, Item } = await client.send(
+      new GetItemCommand({
+        TableName: DYNAMODB_TABLE_USERS,
+        Key: {
+          userId: { S: params.id },
+          // username: { S: payload.username }
+        },
+      })
+    );
 
-    console.log(data);
+    if ($metadata.httpStatusCode !== 200 || !Item) return internalServerErrorResponse();
 
-    return NextResponse.json(data);
+    return NextResponse.json({ Item }, { status: 200 })
   } catch (error: any) {
-    return NextResponse.json({ error: error.message });
+    console.error("Error in GET handler: ", error);
+    return internalServerErrorResponse();
   }
 }
-
-// export async function POST(
-//   req: NextRequest,
-//   { params }: { params: { id: string } },
-// ) {
-//
-//   try {
-//
-//     const res = await client.send(new PutItemCommand({
-//         TableName: TABLE_USERS,
-//         Item: {
-//           userId: { S: payload?.sub as string },
-//           username: { S: "wer" },
-//           email: { S: payload?.email as string },
-//           firstName: { S: payload?.email as string },
-//           friends: { SS: [""] },
-//           fullName: { S: payload?.email as string },
-//           lastName: { S: payload?.email as string },
-//           profilePicUrl: { S: payload?.email as string },
-//         },
-//       }),
-//     );
-//
-//     console.log(res);
-//   } catch (e) {
-//
-//   }
-//   return;
-// }

@@ -1,53 +1,41 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import verifyToken from "@/utils/verify-token";
 import { DynamoDBClient, GetItemCommand, DeleteItemCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import { validateRequest } from "@/helpers/auth/validate-request";
+import { unauthorizedResponse, internalServerErrorResponse } from "@/helpers/http/responses";
 
 const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_HABITS } = process.env;
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
-  const cookieStore = cookies();
-  const { id } = params
-
   try {
+    const payload = await validateRequest(req);
+    if (!payload) return unauthorizedResponse();
 
-    const accessToken = cookieStore.get("access_token")?.value as string;
-    const { payload, error } = await verifyToken(accessToken, "access");
-
-    if (error) return NextResponse.json({ error }, { status: 401 })
-
-    const res = await client.send(
+    const { $metadata, Item } = await client.send(
       new GetItemCommand({
         TableName: DYNAMODB_TABLE_HABITS,
         Key: {
-          userId: { S: payload?.sub as string },
-          habitId: { S: id },
+          habit_id: { S: params.id },
+          user_id: { S: payload.sub },
         },
       })
     )
 
-    if (res.$metadata.httpStatusCode !== 200) {
-      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
-    }
+    if ($metadata.httpStatusCode !== 200 || !Item) return internalServerErrorResponse();
 
-    return NextResponse.json({ habit: res.Item }, { status: 200 })
+    return NextResponse.json({ Item }, { status: 200 })
   } catch (error) {
-    console.error(error)
-    return NextResponse.json({ error }, { status: 500 })
+    console.error('Error in GET handler: ', error)
+    return internalServerErrorResponse();
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const cookieStore = cookies();
-
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const accessToken = cookieStore.get("access_token")?.value as string;
-    const { payload, error } = await verifyToken(accessToken, "access");
+    const payload = await validateRequest(request);
+    if (!payload) return unauthorizedResponse();
 
-    if (error) return NextResponse.json({ error }, { status: 401 })
-
-    const res = await client.send(
+    const { $metadata } = await client.send(
       new DeleteItemCommand({
         TableName: DYNAMODB_TABLE_HABITS,
         Key: {
@@ -57,27 +45,23 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       })
     )
 
-    if (res.$metadata.httpStatusCode !== 200) {
-      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
-    }
+    if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
 
     return NextResponse.json({ message: "Item deleted successfully." }, { status: 200 })
   } catch (error) {
-    console.error(error)
-    return NextResponse.json({ error }, { status: 500 })
+    console.error('Error in DELETE handler: ', error)
+    return internalServerErrorResponse();
   }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const cookieStore = cookies();
-
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const body = await req.json()
-    const accessToken = cookieStore.get("access_token")?.value as string;
-    const { payload, error } = await verifyToken(accessToken, "access");
-    if (error) return NextResponse.json({ error }, { status: 401 })
+    const payload = await validateRequest(request);
+    if (!payload) return unauthorizedResponse();
 
-    const res = await client.send(
+    const { isLogged, streak } = await request.json()
+
+    const { $metadata } = await client.send(
       new UpdateItemCommand({
         TableName: DYNAMODB_TABLE_HABITS,
         Key: {
@@ -86,20 +70,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         },
         UpdateExpression: "SET streak = :streak, isLogged = :isLogged",
         ExpressionAttributeValues: {
-          ":streak": { N: body.streak + 1 },
-          ":isLogged": { BOOL: !body.isLogged as boolean },
+          ":streak": { N: streak + 1 },
+          ":isLogged": { BOOL: !isLogged },
         },
         ReturnValues: "NONE",
       })
     )
 
-    if (res.$metadata.httpStatusCode !== 200) {
-      return NextResponse.json({ error: "Internal Server Error" }, { status: 500 })
-    }
+    if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
 
     return NextResponse.json({ message: "Item updated successfuly." }, { status: 200 })
   } catch (error) {
-    console.error(error)
-    return NextResponse.json({ error }, { status: 500 })
+    console.error('Error in PATCH handler: ', error)
+    return internalServerErrorResponse();
   }
 }

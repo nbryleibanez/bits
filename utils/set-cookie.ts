@@ -1,4 +1,4 @@
-export function setSecureCookie(cookieStore: ReturnType<typeof cookies>, name: string, value: string | undefined, maxAge: number): void {
+export function setCookie(cookieStore: ReturnType<typeof cookies>, name: string, value: string | undefined, maxAge: number): void {
   if (value) {
     cookieStore.set(name, value, {
       httpOnly: true,

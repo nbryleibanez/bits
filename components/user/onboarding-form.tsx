@@ -14,6 +14,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
 
 interface Props {
@@ -22,9 +23,9 @@ interface Props {
 }
 
 const formSchema = z.object({
-  username: z.string(),
-  firstName: z.string(),
-  lastName: z.string(),
+  username: z.string().min(1, { message: "Username is required" }),
+  firstName: z.string().min(1, { message: "First name is required" }),
+  lastName: z.string().min(1, { message: "Last name is required" }),
 });
 
 export default function OnboardingForm({ firstName, lastName }: Props) {
@@ -41,11 +42,12 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    console.log(values);
+
     const res = await fetch(`${origin}/api/users`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Operation-Type": "Onboarding",
       },
       body: JSON.stringify({
         username: values.username,
@@ -55,16 +57,24 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
     });
 
     if (!res.ok) {
-      toast({
+      const data = await res.json();
+
+      if (res.status === 400) {
+        return toast({
+          variant: "destructive",
+          title: data.error,
+          description: data.message || "You're missing something.",
+        })
+      }
+
+      return toast({
         variant: "destructive",
-        title: "Something went wrong.",
-        description: "We're fixing this, Houston.",
+        title: data.error || "Something went wrong.",
+        description: data.message || "We're fixing this, Houston.",
       });
     }
 
-    if (res.ok) {
-      router.push("/");
-    }
+    router.push("/");
   };
 
   return (
@@ -86,6 +96,7 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
                     {...field}
                   />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -101,6 +112,7 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
                     {...field}
                   />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />
@@ -116,6 +128,7 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
                     {...field}
                   />
                 </FormControl>
+                <FormMessage />
               </FormItem>
             )}
           />

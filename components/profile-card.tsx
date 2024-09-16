@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { cookies, headers } from "next/headers"
+import { cookies } from "next/headers"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export default async function ProfileCard() {
@@ -23,11 +23,11 @@ export default async function ProfileCard() {
       </div>
       <div className="flex md:flex-col gap-4">
         <Avatar className="h-12 w-12">
-          <AvatarImage src={Item.profilePicUrl.S} />
+          <AvatarImage src={Item.avatar_url.S} />
           <AvatarFallback>S</AvatarFallback>
         </Avatar>
         <div>
-          <div className="md:text-xl font-semibold">{Item.fullName.S}</div>
+          <div className="md:text-xl font-semibold">{Item.full_name.S}</div>
           <div className="md:text-xl">@{Item.username.S}</div>
         </div>
       </div>

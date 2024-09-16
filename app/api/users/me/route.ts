@@ -1,34 +1,35 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { cookies } from "next/headers"
 import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb"
-import verifyToken from "@/utils/verify-token"
+import { verifyToken } from "@/utils/verify-token"
+import { validateRequest } from "@/helpers/auth/validate-request"
+import { unauthorizedResponse, internalServerErrorResponse } from "@/helpers/http/responses"
 
 const client = new DynamoDBClient({})
-
 const { DYNAMODB_TABLE_USERS } = process.env;
 
 export async function GET(request: NextRequest) {
-  const cookieStore = cookies()
-  const idToken = cookieStore.get("id_token")?.value as string
-
   try {
-    const { payload, error } = await verifyToken(idToken, "id")
+    const payload = await validateRequest(request);
+    if (!payload) return unauthorizedResponse();
 
-    if (error) return NextResponse.json({ error }, { status: 500 })
+    const idToken = request.cookies.get("id_token")?.value as string;
+    const idTokenPayload = await verifyToken(idToken, "id");
+    if (!idTokenPayload) return internalServerErrorResponse();
 
-    const command = new GetItemCommand({
-      TableName: DYNAMODB_TABLE_USERS,
-      Key: {
-        userId: { S: payload!.sub },
-        username: { S: "nbryleibanez" }
-      }
-    })
+    const { $metadata, Item } = await client.send(
+      new GetItemCommand({
+        TableName: DYNAMODB_TABLE_USERS,
+        Key: {
+          user_id: { S: payload.sub },
+          username: { S: idTokenPayload["custom:username"] as string }
+        }
+      })
+    )
 
-    const { Item } = await client.send(command)
-
+    if ($metadata.httpStatusCode !== 200 || !Item) return internalServerErrorResponse()
     return NextResponse.json({ Item }, { status: 200 })
   } catch (error) {
-    console.log(error)
-    return NextResponse.json({ error }, { status: 500 })
+    console.error('Error in GET handler: ', error)
+    return internalServerErrorResponse()
   }
 }

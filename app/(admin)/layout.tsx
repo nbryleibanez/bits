@@ -3,12 +3,11 @@ import { Inter } from "next/font/google";
 import "@/app/globals.css";
 
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Bits",
+  title: "Admin",
   description: "A habit-tracker.",
 };
 
@@ -20,9 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.className} w-full min-h-screen relative`}>
-        <TooltipProvider>
-          {children}
-        </TooltipProvider>
+        {children}
         <Toaster />
       </body>
     </html>

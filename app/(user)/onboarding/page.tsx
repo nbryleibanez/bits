@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import verifyToken from "@/utils/verify-token";
+import { verifyToken } from "@/utils/verify-token";
 
 import OnboardingForm from "@/components/user/onboarding-form";
 import {
@@ -12,9 +12,7 @@ import {
 export default async function OnboardingPage() {
   const cookieStore = cookies();
   const idToken = cookieStore.get("id_token")?.value as string;
-  const { payload, error } = await verifyToken(idToken, "id");
-
-  console.log(payload)
+  const payload = await verifyToken(idToken, "id");
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center">
