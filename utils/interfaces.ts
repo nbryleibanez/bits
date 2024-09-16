@@ -1,18 +1,16 @@
 export enum HabitType {
-  Basic = "Basic",
-  Cue = "Cue",
-  Duo = "Duo",
+  Basic = "basic",
+  Cue = "cue",
+  Duo = "duo",
 }
 
 export interface Habit {
-  userId: string;
-  habitId: string;
+  user_id: string;
+  habit_id: string;
   type: HabitType;
   title: string;
-  description: string;
   streak: number;
   cue: string | null;
-  partnerUserId: string | null;
-  createdDate: string; // ISO date string
-  lastPerformed: string; // ISO date string
+  participants: object[];
+  created_date: string; // ISO date string
 }

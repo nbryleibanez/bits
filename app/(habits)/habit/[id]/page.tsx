@@ -29,10 +29,12 @@ export default async function HabitPage({ params }: { params: { id: string } }) 
   const isLogged = participant?.M.is_logged.BOOL
 
   return (
-    <main className="flex flex-col gap-4 p-6">
-      <Link href="/">
-        <ArrowLeftIcon className="h-8 w-8" />
-      </Link>
+    <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-6">
+      <div className="w-full max-w-md">
+        <Link href="/">
+          <ArrowLeftIcon className="h-8 w-8" />
+        </Link>
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex justify-between">

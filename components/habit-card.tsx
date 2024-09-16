@@ -1,13 +1,8 @@
 import Link from "next/link";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Habit } from "@/utils/interfaces";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-interface Props {
-  habit: Habit;
-}
-
-export default function HabitCard({ habit }: Props) {
+export default function HabitCard({ habit }: any) {
   return (
     <Link
       href={`/habit/${habit.habit_id.S}`}
@@ -18,9 +13,14 @@ export default function HabitCard({ habit }: Props) {
           <div className="text-red-600 text-4xl font-bold">{habit.streak.N}</div>
           <div className="text-xs">streak</div>
         </div>
-        <Avatar className="w-10 h-10">
-          <AvatarFallback>P</AvatarFallback>
-        </Avatar>
+        <div className="flex">
+          {habit.participants.L.map((p: any) => (
+            <Avatar className="w-10 h-10">
+              <AvatarImage src={p.M.avatar_url.S} />
+              <AvatarFallback>P</AvatarFallback>
+            </Avatar>
+          ))}
+        </div>
       </div>
       <div>
         <p className="text-xl font-medium">{habit.title.S}</p>
