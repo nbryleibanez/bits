@@ -6,10 +6,7 @@ import { unauthorizedResponse, internalServerErrorResponse } from "@/helpers/htt
 const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_USERS } = process.env;
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } },
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const payload = await validateRequest(request);
     if (!payload) return unauthorizedResponse();
@@ -18,8 +15,7 @@ export async function GET(
       new GetItemCommand({
         TableName: DYNAMODB_TABLE_USERS,
         Key: {
-          userId: { S: params.id },
-          // username: { S: payload.username }
+          user_id: { S: params.id },
         },
       })
     );

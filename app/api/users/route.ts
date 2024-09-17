@@ -48,9 +48,10 @@ export async function POST(request: NextRequest) {
       first_name: body.firstName,
       last_name: body.lastName,
       full_name: fullName,
+      avatar_url: idTokenPayload?.picture,
+      created_date: new Date().toISOString(),
       friends: [],
       friend_requests: [],
-      avatar_url: idTokenPayload?.picture,
     });
 
     if (!success || !data) return badRequestResponse();
@@ -65,9 +66,10 @@ export async function POST(request: NextRequest) {
           first_name: { S: data.first_name },
           last_name: { S: data.last_name },
           full_name: { S: data.full_name },
+          avatar_url: { S: data.avatar_url as string },
+          created_date: { S: data.created_date },
           friends: { L: [] },
           friend_requests: { L: [] },
-          avatar_url: { S: data.avatar_url as string },
         },
       }),
     );

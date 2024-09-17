@@ -22,7 +22,7 @@ const FormSchema = z.object({
   username: z.string()
 });
 
-export default function AddFriendForm() {
+export default function AddFriendForm({ token }: { token: string }) {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
 
@@ -36,26 +36,36 @@ export default function AddFriendForm() {
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
     setLoading(true)
 
-    // const res = await fetch(`${process.env.SITE}/api/habits`, {
-    //   method: "POST",
-    //   headers: {
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify(values.username)
-    // });
-    //
-    // if (!res.ok) {
-    //   return toast({
-    //     variant: "destructive",
-    //     title: "Something went wrong.",
-    //     description: "We're fixing this, Houston.",
-    //   })
-    // }
-    //
-    // toast({
-    //   title: "Success",
-    //   description: "Habit successfully created.",
-    // })
+    const res = await fetch(`${window.location.origin}/api/friends/request`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(values)
+    })
+
+    setLoading(false)
+    form.reset()
+
+    if (!res.ok) {
+      const { error, message } = await res.json()
+
+      return toast({
+        variant: "destructive",
+        title: error,
+        description: message || "Something went wrong",
+      })
+
+      return toast({
+        variant: "destructive",
+        title: "Something went wrong",
+        description: "We're fixing this, Houston.",
+      })
+    }
+
+    toast({
+      title: "Friend request successfully sent",
+    })
   };
 
   return (

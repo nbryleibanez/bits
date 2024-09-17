@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
       created_date: dateNow,
       participants: [{
         user_id: payload.sub,
+        username: idTokenPayload?.["custom:username"] as string,
         full_name: idTokenPayload?.name as string,
         avatar_url: idTokenPayload?.picture as string,
         role: 'owner',
@@ -69,7 +70,9 @@ export async function POST(request: NextRequest) {
       }],
     })
 
+
     if (!parsed.success) return badRequestResponse();
+    console.log(parsed)
 
     const { $metadata } = await client.send(
       new PutItemCommand({
@@ -96,6 +99,7 @@ export async function POST(request: NextRequest) {
       })
     )
 
+    console.log("3")
     if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
     return NextResponse.json({ habitId }, { status: 201 })
   } catch (error) {
