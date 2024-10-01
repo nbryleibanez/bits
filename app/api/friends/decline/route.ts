@@ -1,19 +1,19 @@
 import { type NextRequest } from "next/server";
 import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
-import { validateRequest } from "@/helpers/auth/validate-request";
 
+import { validateAccessToken } from "@/utils/auth/tokens";
 import {
   okResponse,
   unauthorizedResponse,
   internalServerErrorResponse
-} from "@/helpers/http/responses";
+} from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_USERS } = process.env
 
 export async function POST(request: NextRequest) {
   try {
-    const payload = await validateRequest(request);
+    const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
     const body = await request.json();
@@ -29,7 +29,6 @@ export async function POST(request: NextRequest) {
     )
 
     if (updateSourceUserResponse.$metadata.httpStatusCode != 200) return internalServerErrorResponse();
-
     return okResponse();
   } catch (error) {
     console.error("Error in POST handler: ", error);

@@ -3,7 +3,7 @@ import { cookies } from "next/headers";
 import { decrypt } from "@/utils/encryption";
 import { setCookie } from "@/utils/set-cookie";
 import redirectError from "@/utils/redirect-error";
-import { verifyToken } from "@/utils/verify-token";
+import { verifyToken } from "@/utils/auth/tokens";
 
 const { COGNITO_DOMAIN, COGNITO_APP_CLIENT_ID, COGNITO_APP_CLIENT_SECRET } = process.env;
 

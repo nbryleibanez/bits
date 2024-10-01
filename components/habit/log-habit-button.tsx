@@ -1,6 +1,6 @@
 "use client"
 
-import { useRouter, useParams } from "next/navigation";
+import { useRouter, useParams, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { CheckIcon } from "@radix-ui/react-icons";
 
@@ -14,15 +14,18 @@ interface Props {
 export default function LogHabitButton({ streak, isLogged }: Props) {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
+  const type = searchParams.get("type");
+
   const handleLog = async () => {
-    const res = await fetch(`${window.location.origin}/api/habits/${params.id}`, {
+    const res = await fetch(`${window.location.origin}/api/habits/${params.id}?type=${type}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ streak: streak, isLogged: isLogged })
+      body: JSON.stringify({ streak: streak })
     });
 
     if (!res.ok) {

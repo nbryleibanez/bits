@@ -21,6 +21,10 @@ export const badRequestResponse = (message?: string): NextResponse<{ error: stri
 export const unauthorizedResponse = (): NextResponse<{ error: string }> =>
   NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+// 403 Forbidden
+export const forbiddenResponse = (): NextResponse<{ error: string }> =>
+  NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
 // 404 Not Found
 export const notFoundResponse = (): NextResponse<{ error: string }> =>
   NextResponse.json({ error: 'Not Found' }, { status: 404 })

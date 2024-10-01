@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
@@ -18,21 +18,24 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-export default function DeleteHabitButton() {
+export default function DeleteHabitButton({ owner }: { owner: string }) {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
+  const type = searchParams.get("type");
 
   const [isLoading, setIsLoading] = useState(false);
 
   const handleDelete = async () => {
     setIsLoading(true)
 
-    const res = await fetch(`${window.location.origin}/api/habits/${params.id}`, {
+    const res = await fetch(`${window.location.origin}/api/habits/${params.id}?type=${type}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({ owner }),
     });
 
     if (!res.ok) {

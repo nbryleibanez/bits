@@ -11,6 +11,13 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   Form,
   FormControl,
   FormField,
@@ -20,10 +27,11 @@ import {
 } from "@/components/ui/form";
 
 const FormSchema = z.object({
-  title: z.string().nonempty("Title is required"),
+  title: z.string().min(1, { message: "Title is required" }),
+  duo: z.string()
 });
 
-export default function BasicHabitForm() {
+export default function DuoHabitForm({ Item }: { Item: any }) {
   const router = useRouter();
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
@@ -32,16 +40,18 @@ export default function BasicHabitForm() {
     resolver: zodResolver(FormSchema),
     defaultValues: {
       title: "",
+      duo: "",
     },
   });
 
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
     const input = {
-      title: form.getValues().title,
-      type: "basic"
+      title: values.title,
+      duoId: values.duo,
+      type: "duo",
     }
 
-    const res = await fetch(`${window.location.origin}/api/habits/basic`, {
+    const res = await fetch(`${window.location.origin}/api/habits/request`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -61,12 +71,12 @@ export default function BasicHabitForm() {
 
     toast({
       title: "Success",
-      description: "Habit successfully created.",
+      description: "Habit Request successfully sent.",
     })
 
-    const { habitId, habitType } = await res.json()
+    const { habitId } = await res.json()
 
-    router.push(`/habit/${habitId}?type=${habitType}`)
+    router.push(`/habit/${habitId}`)
     router.refresh()
   };
 
@@ -80,8 +90,32 @@ export default function BasicHabitForm() {
             <FormItem>
               <FormLabel>Habit Title</FormLabel>
               <FormControl>
+                <Input {...field} />
               </FormControl>
-              <Input {...field} />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="duo"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Duo</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {
+                    Item.friends.L.map((f: any) => (
+                      <SelectItem value={f.M.user_id.S}>{f.M.full_name.S}</SelectItem>
+                    ))
+                  }
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}

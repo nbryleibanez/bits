@@ -6,7 +6,29 @@ import { useToast } from '@/components/ui/use-toast'
 import { Button } from '@/components/ui/button'
 import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons'
 
-export default function FriendRequestButtons({ index }: { index: number }) {
+interface Props {
+  sourceUserId: string
+  sourceUsername: string
+  sourceFullName: string
+  sourceAvatarUrl: string
+  targetUserId: string
+  targetUsername: string
+  targetFullName: string
+  targetAvatarUrl: string
+  index: number
+}
+
+export default function FriendRequestButtons({
+  sourceUserId,
+  sourceFullName,
+  sourceAvatarUrl,
+  sourceUsername,
+  targetUserId,
+  targetFullName,
+  targetAvatarUrl,
+  targetUsername,
+  index
+}: Props) {
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
@@ -14,18 +36,29 @@ export default function FriendRequestButtons({ index }: { index: number }) {
   const acceptFriendRequest = async () => {
     setLoading(true)
     // Accept friend request
-    const res = await fetch(`${window.location.origin}/friends/accept`, {
+    const res = await fetch(`${window.location.origin}/api/friends/accept`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ index })
+      body: JSON.stringify({
+        sourceUserId,
+        sourceFullName,
+        sourceAvatarUrl,
+        sourceUsername,
+        targetUserId,
+        targetFullName,
+        targetUsername,
+        targetAvatarUrl,
+        index,
+      })
     })
 
     setLoading(false)
     router.refresh()
     if (!res.ok) {
       return toast({
+        variant: "destructive",
         title: 'Something went wrong',
         description: "We're fixing it, Houston.",
       })
@@ -41,7 +74,7 @@ export default function FriendRequestButtons({ index }: { index: number }) {
 
   const declineFriendRequest = async () => {
     setLoading(true)
-    const res = await fetch(`${window.location.origin}/friends/decline`, {
+    const res = await fetch(`${window.location.origin}/api/friends/decline`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,6 +86,7 @@ export default function FriendRequestButtons({ index }: { index: number }) {
     router.refresh()
     if (!res.ok) {
       return toast({
+        variant: "destructive",
         title: 'Something went wrong',
         description: "We're fixing it, Houston.",
       })
@@ -60,16 +94,16 @@ export default function FriendRequestButtons({ index }: { index: number }) {
   }
 
   return (
-    <div className='flex'>
+    <div className='flex gap-2'>
       <Button
-        className='rounded-full'
+        className='h-10 w-10 rounded-full'
         onClick={acceptFriendRequest}
         disabled={loading}
       >
-        <CheckIcon />
+        <CheckIcon className='h-8 w-8' />
       </Button>
       <Button
-        className='rounded-full'
+        className='h-10 w-10 rounded-full'
         onClick={declineFriendRequest}
         disabled={loading}
       >

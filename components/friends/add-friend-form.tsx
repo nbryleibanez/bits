@@ -55,12 +55,6 @@ export default function AddFriendForm({ token }: { token: string }) {
         title: error,
         description: message || "Something went wrong",
       })
-
-      return toast({
-        variant: "destructive",
-        title: "Something went wrong",
-        description: "We're fixing this, Houston.",
-      })
     }
 
     toast({
@@ -78,12 +72,12 @@ export default function AddFriendForm({ token }: { token: string }) {
           control={form.control}
           name="username"
           render={({ field }) => (
-            <FormItem className="relative flex-1">
+            <FormItem className="relative flex-1 space-y-0">
               <Search className="absolute left-2.5 top-2.5 h-5 w-5 text-muted-foreground" />
               <FormControl></FormControl>
               <Input
                 {...field}
-                className="h-full rounded-lg bg-background pl-9 text-md mt-0"
+                className="h-full rounded-lg bg-background pl-9 text-md"
                 type="search"
                 placeholder="Search"
               />

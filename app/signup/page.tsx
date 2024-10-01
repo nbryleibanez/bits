@@ -16,7 +16,7 @@ export const metadata = {
 
 export default async function SignUpPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
+    <main className="min-h-screen p-4 flex flex-col items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex flex-col items-center space-y-2">

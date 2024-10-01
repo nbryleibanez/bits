@@ -33,6 +33,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ idToken, accessToken }, { status: 200 });
   } catch (e: any) {
-    return NextResponse.json({ message: e.message }, { status: 500 });
+    return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

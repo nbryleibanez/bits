@@ -7,7 +7,6 @@ export async function middleware(req: NextRequest) {
   const response = NextResponse.next();
   const cookieStore = cookies();
   const path: string = req.nextUrl.pathname;
-
   const hasRefreshToken = cookieStore.has("refresh_token");
 
   if (
@@ -17,32 +16,22 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/signin", req.nextUrl));
   } else if (hasRefreshToken) {
     const hasAccessToken = cookieStore.has("access_token");
+    const accessTokenValue = cookieStore.get("access_token")?.value;
 
-    if (!hasAccessToken) {
+    if (!accessTokenValue || !hasAccessToken) {
       const refreshToken = cookieStore.get("refresh_token")?.value;
 
-      const res = await fetch(`${req.nextUrl.origin}/api/auth/refresh-tokens`, {
+      const { idToken, accessToken } = await fetch(`${req.nextUrl.origin}/api/auth/refresh-tokens`, {
         method: "POST",
         headers: {
+          Cookie: cookieStore.toString(),
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ refreshToken }),
-      });
+      }).then(res => res.json())
 
-      const data = await res.json();
-
-      response.cookies.set("access_token", data.accessToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "lax",
-        maxAge: 3600,
-      });
-      response.cookies.set("id_token", data.idToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: "lax",
-        maxAge: 3600,
-      });
+      response.cookies.set("id_token", idToken, { httpOnly: true, secure: true, sameSite: "lax", maxAge: 3600, });
+      response.cookies.set("access_token", accessToken, { httpOnly: true, secure: true, sameSite: "lax", maxAge: 3600, });
     }
 
     if (path == "/signin")

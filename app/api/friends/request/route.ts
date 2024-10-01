@@ -1,9 +1,7 @@
-
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 import { DynamoDBClient, GetItemCommand, QueryCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
-import { verifyToken } from "@/utils/verify-token";
-import { validateRequest } from "@/helpers/auth/validate-request";
 
+import { verifyToken, validateAccessToken } from "@/utils/auth/tokens";
 import {
   okResponse,
   badRequestResponse,
@@ -11,14 +9,14 @@ import {
   notFoundResponse,
   conflictResponse,
   internalServerErrorResponse
-} from "@/helpers/http/responses";
+} from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_USERS } = process.env
 
 export async function POST(request: NextRequest) {
   try {
-    const payload = await validateRequest(request);
+    const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
     const body = await request.json();
@@ -26,9 +24,8 @@ export async function POST(request: NextRequest) {
     const idTokenPayload = await verifyToken(idToken, "id")
     if (!idTokenPayload) return unauthorizedResponse();
 
-    if (body.username === idTokenPayload['custom:username']) {
+    if (body.username === idTokenPayload['custom:username'])
       return badRequestResponse("You cannot send a friend request to yourself.")
-    }
 
     const getSenderResponse = await client.send(
       new GetItemCommand({
@@ -36,7 +33,8 @@ export async function POST(request: NextRequest) {
         Key: { user_id: { S: payload.sub } },
       })
     )
-    if (getSenderResponse.$metadata.httpStatusCode !== 200 || !getSenderResponse.Item) return internalServerErrorResponse();
+    if (getSenderResponse.$metadata.httpStatusCode !== 200 || !getSenderResponse.Item)
+      return internalServerErrorResponse();
 
     const isFriend = getSenderResponse.Item?.friends?.L?.some((f) =>
       f.M?.username?.S === body.username
@@ -69,7 +67,6 @@ export async function POST(request: NextRequest) {
         TableName: DYNAMODB_TABLE_USERS,
         Key: {
           user_id: { S: checkTargetExistsResponse.Items[0].user_id.S as string },
-          username: { S: body.username },
         },
         UpdateExpression: "SET friend_requests = list_append(friend_requests, :newFriendRequest)",
         ExpressionAttributeValues: {

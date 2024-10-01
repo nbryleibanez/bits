@@ -1,22 +1,29 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { DynamoDBClient, GetItemCommand, DeleteItemCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
-import { validateRequest } from "@/helpers/auth/validate-request";
-import { unauthorizedResponse, internalServerErrorResponse } from "@/helpers/http/responses";
+import {
+  DynamoDBClient,
+  GetItemCommand,
+  DeleteItemCommand,
+  UpdateItemCommand
+} from "@aws-sdk/client-dynamodb";
+
+import { validateAccessToken } from "@/utils/auth/tokens";
+import { unauthorizedResponse, forbiddenResponse, internalServerErrorResponse } from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_HABITS } = process.env;
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const payload = await validateRequest(req);
+    const payload = await validateAccessToken(req);
     if (!payload) return unauthorizedResponse();
 
+    const type = req.nextUrl.searchParams.get('type') as string;
     const { $metadata, Item } = await client.send(
       new GetItemCommand({
         TableName: DYNAMODB_TABLE_HABITS,
         Key: {
           habit_id: { S: params.id },
-          user_id: { S: payload.sub },
+          habit_type: { S: type }
         },
       })
     )
@@ -30,44 +37,20 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const payload = await validateRequest(request);
-    if (!payload) return unauthorizedResponse();
-
-    const { $metadata } = await client.send(
-      new DeleteItemCommand({
-        TableName: DYNAMODB_TABLE_HABITS,
-        Key: {
-          user_id: { S: payload?.sub as string },
-          habit_id: { S: params.id }
-        },
-      })
-    )
-
-    if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
-
-    return NextResponse.json({ message: "Item deleted successfully." }, { status: 200 })
-  } catch (error) {
-    console.error('Error in DELETE handler: ', error)
-    return internalServerErrorResponse();
-  }
-}
-
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const payload = await validateRequest(request);
+    const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
-    const user_id = payload.sub;
-    const { isLogged, streak } = await request.json()
+    const { streak } = await request.json()
+    const habitType = request.nextUrl.searchParams.get('type') as string;
 
     const getItemCommandResponse = await client.send(
       new GetItemCommand({
         TableName: DYNAMODB_TABLE_HABITS,
         Key: {
           habit_id: { S: params.id },
-          user_id: { S: user_id }
+          habit_type: { S: habitType },
         },
       })
     )
@@ -82,6 +65,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       role: p.M.role.S
     }))
 
+    // Update the is_logged field of the participant that made the request
     const updatedParticipants = participants?.map((participant: any) =>
       participant.user_id === payload.sub ? { ...participant, is_logged: true } : participant
     )
@@ -103,8 +87,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       new UpdateItemCommand({
         TableName: DYNAMODB_TABLE_HABITS,
         Key: {
-          user_id: { S: payload?.sub as string },
-          habit_id: { S: params.id }
+          habit_id: { S: params.id },
+          habit_type: { S: habitType }
         },
         UpdateExpression: "SET streak = :streak, participants = :participants",
         ExpressionAttributeValues: {
@@ -121,6 +105,35 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     return NextResponse.json({ message: "Item updated successfuly." }, { status: 200 })
   } catch (error) {
     console.error('Error in PATCH handler: ', error)
+    return internalServerErrorResponse();
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const payload = await validateAccessToken(request);
+    if (!payload) return unauthorizedResponse();
+
+    const { owner } = await request.json();
+    const habitType = request.nextUrl.searchParams.get('type') as string;
+
+    if (payload.sub !== owner) return forbiddenResponse();
+
+    const { $metadata } = await client.send(
+      new DeleteItemCommand({
+        TableName: DYNAMODB_TABLE_HABITS,
+        Key: {
+          habit_id: { S: params.id },
+          habit_type: { S: habitType },
+        },
+      })
+    )
+
+    if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+
+    return NextResponse.json({ message: "Item deleted successfully." }, { status: 200 })
+  } catch (error) {
+    console.error('Error in DELETE handler: ', error)
     return internalServerErrorResponse();
   }
 }

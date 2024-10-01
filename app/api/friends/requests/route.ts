@@ -1,23 +1,21 @@
-import { type NextRequest, NextResponse } from "next/server";
-import { DynamoDBClient, GetItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
-import { validateRequest } from "@/helpers/auth/validate-request";
+import { type NextRequest } from "next/server";
+import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 
-import { unauthorizedResponse, internalServerErrorResponse } from "@/helpers/http/responses";
+import { validateAccessToken } from "@/utils/auth/tokens";
+import { unauthorizedResponse, internalServerErrorResponse } from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_USERS } = process.env;
 
 export async function GET(request: NextRequest) {
   try {
-    const payload = await validateRequest(request);
+    const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
     const { $metadata, Item } = await client.send(
       new GetItemCommand({
-        TableName: ,
-        Key: {
-          user_id: { S: payload.sub },
-        },
+        TableName: DYNAMODB_TABLE_USERS,
+        Key: { user_id: { S: payload.sub }, },
       })
     )
 

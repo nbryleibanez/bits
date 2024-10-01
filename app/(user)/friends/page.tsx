@@ -1,38 +1,32 @@
 import { cookies } from 'next/headers';
-import { verifyToken } from '@/utils/verify-token';
-import AddFriendForm from "@/components/friends/add-friend-form";
+import { verifyToken } from '@/utils/auth/tokens';
 
-import {
-  Avatar,
-  AvatarImage,
-  AvatarFallback
-} from "@/components/ui/avatar";
-import {
-  CardHeader,
-  CardContent,
-  Card,
-} from "@/components/ui/card";
+import AddFriendForm from "@/components/friends/add-friend-form";
+import FriendRequestButtons from '@/components/friends/friend-request-buttons';
+import BackButton from "@/components/back-button";
+
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { CardHeader, CardContent, Card, } from "@/components/ui/card";
 
 export const metadata = {
   title: 'Friends'
 }
 
 export default async function FriendsPage() {
-  const idToken = cookies().get('id_token')?.value as string
-  const payload = await verifyToken(idToken, "id") as unknown as string
-
-  const res = await fetch(`${process.env.SITE}/api/users/${payload.sub}`, {
+  const payload = await verifyToken(cookies().get('id_token')?.value as string, "id") as unknown as string
+  const { Item } = await fetch(`${process.env.SITE}/api/users/${payload.sub}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
       'Cookie': cookies().toString()
     }
-  })
-
-  const { Item } = await res.json()
+  }).then(res => res.json())
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-4">
+    <main className="min-h-screen p-5 flex flex-col items-center sm:justify-center gap-4">
+      <div className='w-full max-w-md cursor-pointer'>
+        <BackButton />
+      </div>
       <AddFriendForm token={payload} />
       <Card className="w-full max-w-md">
         <CardHeader>
@@ -43,15 +37,24 @@ export default async function FriendsPage() {
             {
               Item.friend_requests?.L.map((request: any, index: number) => (
                 <div key={request.M.user_id.S} className="flex flex-row items-center justify-between gap-4">
-                  <Avatar>
+                  <Avatar className='h-10 w-10'>
                     <AvatarImage src={request.M.avatar_url.S} alt={request.M.full_name.S} />
                     <AvatarFallback>
                       {request.M.full_name.S[0]}
                     </AvatarFallback>
                   </Avatar>
                   <p>{request.M.full_name.S}</p>
-                  <button>Accept</button>
-                  <button>Decline</button>
+                  <FriendRequestButtons
+                    sourceUserId={Item.user_id.S as string}
+                    sourceUsername={Item.username.S as string}
+                    sourceFullName={Item.full_name.S as string}
+                    sourceAvatarUrl={Item.avatar_url.S as string}
+                    targetUserId={request.M.user_id.S as string}
+                    targetUsername={request.M.username.S as string}
+                    targetFullName={request.M.full_name.S as string}
+                    targetAvatarUrl={request.M.avatar_url.S as string}
+                    index={index}
+                  />
                 </div>
               ))
             }
@@ -63,6 +66,21 @@ export default async function FriendsPage() {
           <h1 className="text-2xl font-bold">Friends</h1>
         </CardHeader>
         <CardContent>
+          <div className="flex flex-col">
+            {
+              Item.friends.L.map((f: any) => (
+                <div key={f.M.user_id.S} className="flex flex-row items-center justify-between gap-4">
+                  <Avatar className='h-10 w-10'>
+                    <AvatarImage src={f.M.avatar_url.S} alt={f.M.full_name.S} />
+                    <AvatarFallback>
+                      {f.M.full_name.S[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <p>{f.M.full_name.S}</p>
+                </div>
+              ))
+            }
+          </div>
         </CardContent>
       </Card>
     </main>

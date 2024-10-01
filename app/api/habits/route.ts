@@ -1,109 +1,58 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { ulid } from "ulid"
+import { NextRequest } from "next/server";
+import { DynamoDBClient, GetItemCommand, BatchGetItemCommand } from "@aws-sdk/client-dynamodb";
 
-import { habitSchema } from "@/lib/schema"
-import { verifyToken } from "@/utils/verify-token"
-import { validateRequest } from "@/helpers/auth/validate-request"
-import { badRequestResponse, unauthorizedResponse, internalServerErrorResponse } from "@/helpers/http/responses"
-import { DynamoDBClient, PutItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { validateAccessToken } from "@/utils/auth/tokens";
+import {
+  okResponse,
+  unauthorizedResponse,
+  internalServerErrorResponse,
+} from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
-const { DYNAMODB_TABLE_HABITS } = process.env;
+const { DYNAMODB_TABLE_USERS, DYNAMODB_TABLE_HABITS } = process.env;
 
 export async function GET(request: NextRequest) {
   try {
-    const payload = await validateRequest(request);
+    const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
-    const { $metadata, Items } = await client.send(
-      new QueryCommand({
-        TableName: DYNAMODB_TABLE_HABITS,
-        IndexName: "user-habit-index",
-        KeyConditionExpression: "user_id = :user_id",
-        ExpressionAttributeValues: {
-          ":user_id": { S: payload?.sub as string },
+    const getUserResponse = await client.send(
+      new GetItemCommand({
+        TableName: DYNAMODB_TABLE_USERS,
+        Key: {
+          user_id: { S: payload.sub },
         },
       })
-    )
+    );
 
-    if ($metadata.httpStatusCode !== 200 || !Items) {
+    if (getUserResponse.$metadata.httpStatusCode !== 200 || !getUserResponse.Item) {
       return internalServerErrorResponse();
     }
 
-    return NextResponse.json({ Items }, { status: 200 })
-  } catch (error) {
-    console.error('Error in GET handler:', error)
-    return internalServerErrorResponse();
-  }
-}
+    const habits = getUserResponse.Item.habits.L || [];
 
-export async function POST(request: NextRequest) {
-  try {
-    const payload = await validateRequest(request);
-    if (!payload) return unauthorizedResponse();
-
-    const body = await request.json()
-    const habitId = ulid()
-    const dateNow = new Date().toISOString()
-
-    if (!body.type || !body.title) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
-
-    const idToken = request.cookies.get("id_token")?.value as string;
-    const idTokenPayload = await verifyToken(idToken, "id");
-
-    const parsed = habitSchema.safeParse({
-      user_id: payload.sub,
-      habit_id: habitId,
-      type: body.type,
-      title: body.title,
-      streak: 0,
-      created_date: dateNow,
-      participants: [{
-        user_id: payload.sub,
-        username: idTokenPayload?.["custom:username"] as string,
-        full_name: idTokenPayload?.name as string,
-        avatar_url: idTokenPayload?.picture as string,
-        role: 'owner',
-        is_logged: false,
-      }],
-    })
-
-
-    if (!parsed.success) return badRequestResponse();
-    console.log(parsed)
-
-    const { $metadata } = await client.send(
-      new PutItemCommand({
-        TableName: DYNAMODB_TABLE_HABITS,
-        Item: {
-          habit_id: { S: parsed.data.habit_id },
-          user_id: { S: parsed.data.user_id },
-          type: { S: parsed.data.type },
-          title: { S: parsed.data.title },
-          streak: { N: parsed.data.streak.toString() },
-          created_date: { S: parsed.data.created_date },
-          participants: {
-            L: parsed.data.participants.map(participant => ({
-              M: {
-                user_id: { S: participant.user_id },
-                full_name: { S: participant.full_name },
-                avatar_url: { S: participant.avatar_url },
-                role: { S: participant.role },
-                is_logged: { BOOL: participant.is_logged },
-              }
+    const getHabitsResponse = await client.send(
+      new BatchGetItemCommand({
+        RequestItems: {
+          [`${DYNAMODB_TABLE_HABITS}`]: {
+            Keys: habits.map((habit) => ({
+              habit_id: { S: habit.M?.habit_id.S },
+              habit_type: { S: habit.M?.habit_type.S },
             })),
           },
         },
       })
-    )
+    );
 
-    console.log("3")
-    if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
-    return NextResponse.json({ habitId }, { status: 201 })
+    if (getHabitsResponse.$metadata.httpStatusCode !== 200) {
+      return internalServerErrorResponse();
+    }
+
+    const results = getHabitsResponse.Responses?.[`${DYNAMODB_TABLE_HABITS}`] || [];
+
+    return okResponse(results);
   } catch (error) {
-    console.error('Error in POST handler:', error)
+    console.error(error);
     return internalServerErrorResponse();
   }
 }

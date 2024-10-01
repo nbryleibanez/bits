@@ -1,8 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { userSchema } from "@/lib/schema";
-import { verifyToken } from "@/utils/verify-token";
-import { validateRequest } from "@/helpers/auth/validate-request";
-import { badRequestResponse, unauthorizedResponse, internalServerErrorResponse } from "@/helpers/http/responses";
+import { verifyToken, validateAccessToken } from "@/utils/auth/tokens";
+import { badRequestResponse, unauthorizedResponse, internalServerErrorResponse } from "@/utils/http/responses";
 
 import { CognitoIdentityProviderClient, UpdateUserAttributesCommand } from "@aws-sdk/client-cognito-identity-provider";
 import { DynamoDBClient, PutItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
@@ -14,18 +13,24 @@ const { DYNAMODB_TABLE_USERS } = process.env;
 
 export async function POST(request: NextRequest) {
   try {
-    const payload = await validateRequest(request);
+    const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
-    const body = await request.json();
-    const fullName = `${body.firstName} ${body.lastName}`;
+    const {
+      username,
+      firstName,
+      lastName,
+      sex,
+      age,
+    } = await request.json();
+
+    const fullName = `${firstName} ${lastName}`;
     const accessToken = request.cookies.get("access_token")?.value as string;
     const idToken = request.cookies.get("id_token")?.value as string;
     const refreshToken = request.cookies.get("refresh_token")?.value as string;
     const idTokenPayload = await verifyToken(idToken, "id");
 
-    if (!body.username || !body.firstName || !body.lastName) return badRequestResponse();
-
+    // Check if username already exists
     try {
       const getItemResponse = await client.send(
         new QueryCommand({
@@ -33,7 +38,7 @@ export async function POST(request: NextRequest) {
           IndexName: "username-index",
           KeyConditionExpression: "username = :username",
           ExpressionAttributeValues: {
-            ":username": { S: body.username },
+            ":username": { S: username },
           },
         })
       )
@@ -43,13 +48,17 @@ export async function POST(request: NextRequest) {
 
     const { success, data } = userSchema.safeParse({
       user_id: payload.sub,
-      username: body.username,
+      username: username,
       email: idTokenPayload?.email,
-      first_name: body.firstName,
-      last_name: body.lastName,
+      first_name: firstName,
+      last_name: lastName,
       full_name: fullName,
+      sex: sex,
+      age: age,
       avatar_url: idTokenPayload?.picture,
       created_date: new Date().toISOString(),
+      habits: [],
+      habits_requests: [],
       friends: [],
       friend_requests: [],
     });
@@ -66,8 +75,12 @@ export async function POST(request: NextRequest) {
           first_name: { S: data.first_name },
           last_name: { S: data.last_name },
           full_name: { S: data.full_name },
+          sex: { S: data.sex },
+          age: { N: data.age.toString() },
           avatar_url: { S: data.avatar_url as string },
           created_date: { S: data.created_date },
+          habits: { L: [] },
+          habits_requests: { L: [] },
           friends: { L: [] },
           friend_requests: { L: [] },
         },
@@ -86,7 +99,7 @@ export async function POST(request: NextRequest) {
           },
           {
             Name: "custom:username",
-            Value: body.username,
+            Value: username,
           }
         ],
       })
