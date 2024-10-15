@@ -2,8 +2,8 @@ import SignOutButton from "@/components/auth/signout-button";
 
 export default function UserPage() {
   return (
-    <div>
+    <main className="p-5">
       <SignOutButton />
-    </div>
+    </main>
   );
 }

@@ -15,7 +15,7 @@ export default function HabitCard({ habit }: any) {
         </div>
         <div className="flex gap-1">
           {habit.participants.L.map((p: any) => (
-            <Avatar className="w-10 h-10">
+            <Avatar key={p.M.user_id.S} className="w-10 h-10">
               <AvatarImage src={p.M.avatar_url.S} />
               <AvatarFallback>P</AvatarFallback>
             </Avatar>

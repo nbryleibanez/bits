@@ -111,7 +111,7 @@ export default function DuoHabitForm({ Item }: { Item: any }) {
                 <SelectContent>
                   {
                     Item.friends.L.map((f: any) => (
-                      <SelectItem value={f.M.user_id.S}>{f.M.full_name.S}</SelectItem>
+                      <SelectItem key={f.M.user_id.S} value={f.M.user_id.S}>{f.M.full_name.S}</SelectItem>
                     ))
                   }
                 </SelectContent>
