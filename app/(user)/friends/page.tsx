@@ -36,7 +36,7 @@ export default async function FriendsPage() {
           <h1 className="text-2xl font-bold">Friend Requests</h1>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-2">
             {
               Item.friend_requests?.L.map((request: any, index: number) => (
                 <div key={request.M.user_id.S} className="flex flex-row items-center justify-between gap-4">
@@ -71,7 +71,7 @@ export default async function FriendsPage() {
           <h1 className="text-2xl font-bold">Friends</h1>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col">
+          <div className="flex flex-col gap-2">
             {
               Item.friends.L.map((f: any) => (
                 <div key={f.M.user_id.S} className="flex flex-row items-center justify-between gap-4">
