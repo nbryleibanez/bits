@@ -32,21 +32,33 @@ export async function GET(request: NextRequest) {
 
     const habits = getUserResponse.Item.habits.L || [];
 
+    // Use a Set to ensure unique keys
+    const uniqueKeys = new Set(
+      habits.map((habit) => `${habit.M.habit_id.S}#${habit.M.habit_type.S}`)
+    );
+
+    const keysArray = Array.from(uniqueKeys).map((key) => {
+      const [habit_id, habit_type] = key.split('#');
+      return {
+        habit_id: { S: habit_id },
+        habit_type: { S: habit_type },
+      };
+    });
+
     const getHabitsResponse = await client.send(
       new BatchGetItemCommand({
         RequestItems: {
           [`${DYNAMODB_TABLE_HABITS}`]: {
-            Keys: habits.map((habit): { habit_id: { S: string }; habit_type: { S: string } } => ({
-              habit_id: { S: habit.M?.habit_id.S! },
-              habit_type: { S: habit.M?.habit_type.S! },
-            })),
+            Keys: keysArray,
           },
         },
       })
     );
 
     if (getHabitsResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+
     const results = getHabitsResponse.Responses?.[`${DYNAMODB_TABLE_HABITS}`] || [];
+
     return okResponse(results);
   } catch (error) {
     console.error(error);
