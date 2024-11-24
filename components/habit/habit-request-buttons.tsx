@@ -52,7 +52,7 @@ export default function HabitRequestButtons({
       title: 'Friend request accepted',
       description: 'You are now friends with this user',
     })
-    router.push(`/habit/${habitRequest.habitId.S}`)
+    router.push(`/habit/${habitId}`)
   }
 
   const declineHabitRequest = async () => {

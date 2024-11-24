@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
 import {
   DynamoDBClient,
   GetItemCommand,
@@ -30,6 +30,6 @@ export async function GET(request: NextRequest) {
     return okResponse(Item)
   } catch (error) {
     console.error("Error in GET handler: ", error)
-    return internalServerErrorResponse
+    return internalServerErrorResponse();
   }
 }

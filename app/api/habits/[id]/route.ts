@@ -74,9 +74,8 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       avatar_url: p.M.avatar_url.S,
       is_logged: p.M.is_logged.BOOL,
       role: p.M.role.S
-    }));
+    })) || [];
 
-    // Update the is_logged field of the participant that made the request
     const updatedParticipants = participants?.map((participant: any) =>
       participant.user_id === payload.sub ? { ...participant, is_logged: true } : participant
     );
@@ -91,8 +90,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       }
     }));
 
-    // Get current streak from DynamoDB and convert it to a number for arithmetic operations
-    const currentStreak = parseInt(getItemCommandResponse.Item.streak.N);
+    const currentStreak = parseInt(getItemCommandResponse.Item.streak.N!);
 
     const isAllLogged = updatedParticipants?.every((p: any) => p.is_logged);
     const newStreak = isAllLogged ? currentStreak + 1 : currentStreak;
@@ -106,7 +104,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         },
         UpdateExpression: "SET streak = :streak, participants = :participants",
         ExpressionAttributeValues: {
-          ":streak": { N: newStreak.toString() },  // Ensure this is a string representation of the number
+          ":streak": { N: newStreak.toString() },
           ":participants": { L: updatedParticipantsDynamoDB }
         },
         ReturnValues: "NONE",

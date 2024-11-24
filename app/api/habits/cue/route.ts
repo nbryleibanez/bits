@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
           habit_type: { S: data.habit_type },
           owner: { S: data.owner },
           title: { S: data.title },
-          cue: { S: data.cue },
+          cue: { S: data.cue! },
           streak: { N: data.streak.toString() },
           created_date: { S: data.created_date },
           participants: {
