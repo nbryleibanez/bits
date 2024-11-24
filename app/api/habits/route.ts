@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     // Use a Set to ensure unique keys
     const uniqueKeys = new Set(
-      habits.map((habit) => `${habit.M.habit_id.S}#${habit.M.habit_type.S}`)
+      habits.map((habit) => `${habit.M?.habit_id.S}#${habit.M?.habit_type.S}`)
     );
 
     const keysArray = Array.from(uniqueKeys).map((key) => {
