@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/form";
 
 const FormSchema = z.object({
-  title: z.string().nonempty("Title is required"),
+  title: z.string().min(1, { message: "Title is required" }),
 });
 
 export default function BasicHabitForm() {

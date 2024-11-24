@@ -11,7 +11,7 @@ import {
 const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_USERS } = process.env
 
-export async function POST(request: NextRequest) {
+export async function PATCH(request: NextRequest) {
   try {
     const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
         Key: {
           user_id: { S: payload.sub },
         },
-        UpdateExpression: `REMOVE friend_requests[${index}]`,
+        UpdateExpression: `REMOVE habits_requests[${index}]`,
       })
     )
 

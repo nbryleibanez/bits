@@ -74,9 +74,7 @@ export default function DuoHabitForm({ Item }: { Item: any }) {
       description: "Habit Request successfully sent.",
     })
 
-    const { habitId } = await res.json()
-
-    router.push(`/habit/${habitId}`)
+    router.push(`/`)
     router.refresh()
   };
 

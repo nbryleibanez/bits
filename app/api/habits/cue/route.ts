@@ -1,10 +1,11 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { type NextRequest } from 'next/server'
+import { DynamoDBClient, PutItemCommand, UpdateItemCommand, } from "@aws-sdk/client-dynamodb";
 import { ulid } from "ulid"
-import { DynamoDBClient, GetItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
 
 import { habitSchema } from "@/lib/schema"
 import { verifyToken, validateAccessToken } from "@/utils/auth/tokens"
 import {
+  createdResponse,
   badRequestResponse,
   unauthorizedResponse,
   internalServerErrorResponse
@@ -18,59 +19,43 @@ export async function POST(request: NextRequest) {
     const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
-    const { title, duoId, type } = await request.json()
+    const { title, cue, type } = await request.json()
+    if (!title || !cue || !type) return badRequestResponse("Missing required fields");
+
     const habitId = ulid()
     const dateNow = new Date().toISOString()
-
-    if (!type || !title) return badRequestResponse("Missing required fields");
-
     const idToken = request.cookies.get("id_token")?.value as string;
     const idTokenPayload = await verifyToken(idToken, "id");
-
-    const getDuoResponse = await client.send(
-      new GetItemCommand({
-        TableName: DYNAMODB_TABLE_USERS,
-        Key: { user_id: { S: duoId } },
-      })
-    )
-
-    if (getDuoResponse.$metadata.httpStatusCode != 200 || !getDuoResponse.Item) return internalServerErrorResponse()
 
     const { data, success } = habitSchema.safeParse({
       habit_id: habitId,
       habit_type: type,
+      owner: payload.sub,
       title: title,
+      cue: cue,
       streak: 0,
       created_date: dateNow,
-      participants: [
-        {
-          user_id: payload.sub,
-          username: idTokenPayload?.["custom:username"] as string,
-          full_name: idTokenPayload?.name as string,
-          avatar_url: idTokenPayload?.picture as string,
-          role: 'owner',
-          is_logged: false,
-        },
-        {
-          user_id: getDuoResponse.Item.user_id.S,
-          username: getDuoResponse.Item.username.S,
-          full_name: getDuoResponse.Item.full_name.S,
-          avatar_url: getDuoResponse.Item.avatar_url.S,
-          role: 'participant',
-          is_logged: false,
-        }
-      ],
+      participants: [{
+        user_id: payload.sub,
+        username: idTokenPayload?.["custom:username"] as string,
+        full_name: idTokenPayload?.name as string,
+        avatar_url: idTokenPayload?.picture as string,
+        role: 'owner',
+        is_logged: false,
+      }],
     })
 
     if (!success) return badRequestResponse();
 
-    const { $metadata } = await client.send(
+    const putItemResponse = await client.send(
       new PutItemCommand({
         TableName: DYNAMODB_TABLE_HABITS,
         Item: {
           habit_id: { S: data.habit_id },
-          type: { S: data.habit_type },
+          habit_type: { S: data.habit_type },
+          owner: { S: data.owner },
           title: { S: data.title },
+          cue: { S: data.cue },
           streak: { N: data.streak.toString() },
           created_date: { S: data.created_date },
           participants: {
@@ -81,15 +66,39 @@ export async function POST(request: NextRequest) {
                 avatar_url: { S: participant.avatar_url },
                 role: { S: participant.role },
                 is_logged: { BOOL: participant.is_logged },
-              },
+              }
             })),
           },
-        },
+        }
       })
     )
 
-    if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
-    return NextResponse.json({ habitId }, { status: 201 })
+    if (putItemResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+
+    const updateItemResponse = await client.send(
+      new UpdateItemCommand({
+        TableName: DYNAMODB_TABLE_USERS,
+        Key: {
+          user_id: { S: payload.sub },
+        },
+        UpdateExpression: "SET habits = list_append(habits, :habit)",
+        ExpressionAttributeValues: {
+          ":habit": {
+            L: [
+              {
+                M: {
+                  habit_id: { S: habitId },
+                  habit_type: { S: type },
+                }
+              }
+            ]
+          },
+        }
+      })
+    )
+
+    if (updateItemResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+    return createdResponse({ habitId, habitType: type })
   } catch (error) {
     console.error('Error in POST handler:', error)
     return internalServerErrorResponse();

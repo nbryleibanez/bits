@@ -7,11 +7,19 @@ import {
 } from "@aws-sdk/client-dynamodb";
 
 import { validateAccessToken } from "@/utils/auth/tokens";
-import { unauthorizedResponse, forbiddenResponse, internalServerErrorResponse } from "@/utils/http/responses";
+import {
+  okResponse,
+  unauthorizedResponse,
+  forbiddenResponse,
+  internalServerErrorResponse
+} from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_HABITS } = process.env;
 
+/*
+  Get habit 
+*/
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const payload = await validateAccessToken(req);
@@ -29,20 +37,21 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     )
 
     if ($metadata.httpStatusCode !== 200 || !Item) return internalServerErrorResponse();
-
-    return NextResponse.json({ Item }, { status: 200 })
+    return okResponse(Item);
   } catch (error) {
     console.error('Error in GET handler: ', error)
     return internalServerErrorResponse();
   }
 }
 
+/* 
+  Update Habit
+*/
 export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
-    const { streak } = await request.json()
     const habitType = request.nextUrl.searchParams.get('type') as string;
 
     const getItemCommandResponse = await client.send(
@@ -53,9 +62,11 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
           habit_type: { S: habitType },
         },
       })
-    )
+    );
 
-    if (getItemCommandResponse.$metadata.httpStatusCode !== 200 || !getItemCommandResponse.Item) return internalServerErrorResponse();
+    if (getItemCommandResponse.$metadata.httpStatusCode !== 200 || !getItemCommandResponse.Item) {
+      return internalServerErrorResponse();
+    }
 
     const participants = getItemCommandResponse.Item.participants.L?.map((p: any) => ({
       user_id: p.M.user_id.S,
@@ -63,12 +74,12 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       avatar_url: p.M.avatar_url.S,
       is_logged: p.M.is_logged.BOOL,
       role: p.M.role.S
-    }))
+    }));
 
     // Update the is_logged field of the participant that made the request
     const updatedParticipants = participants?.map((participant: any) =>
       participant.user_id === payload.sub ? { ...participant, is_logged: true } : participant
-    )
+    );
 
     const updatedParticipantsDynamoDB = updatedParticipants?.map((p: any) => ({
       M: {
@@ -78,10 +89,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         is_logged: { BOOL: p.is_logged },
         role: { S: p.role }
       }
-    }))
+    }));
 
-    const isAllLogged = updatedParticipants?.every((p: any) => p.is_logged)
-    const newStreak = isAllLogged ? streak + 1 : streak
+    // Get current streak from DynamoDB and convert it to a number for arithmetic operations
+    const currentStreak = parseInt(getItemCommandResponse.Item.streak.N);
+
+    const isAllLogged = updatedParticipants?.every((p: any) => p.is_logged);
+    const newStreak = isAllLogged ? currentStreak + 1 : currentStreak;
 
     const { $metadata } = await client.send(
       new UpdateItemCommand({
@@ -92,23 +106,25 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
         },
         UpdateExpression: "SET streak = :streak, participants = :participants",
         ExpressionAttributeValues: {
-          ":streak": { N: newStreak.toString() },
+          ":streak": { N: newStreak.toString() },  // Ensure this is a string representation of the number
           ":participants": { L: updatedParticipantsDynamoDB }
-
         },
         ReturnValues: "NONE",
       })
-    )
+    );
 
     if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
 
-    return NextResponse.json({ message: "Item updated successfuly." }, { status: 200 })
+    return NextResponse.json({ message: "Item updated successfully." }, { status: 200 });
   } catch (error) {
-    console.error('Error in PATCH handler: ', error)
+    console.error('Error in PATCH handler:', error);
     return internalServerErrorResponse();
   }
 }
 
+/*
+  Delete Habit
+*/
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const payload = await validateAccessToken(request);
@@ -130,8 +146,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     )
 
     if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
-
-    return NextResponse.json({ message: "Item deleted successfully." }, { status: 200 })
+    return okResponse();
   } catch (error) {
     console.error('Error in DELETE handler: ', error)
     return internalServerErrorResponse();

@@ -8,6 +8,8 @@ export const okResponse = (data?: any) => {
   return NextResponse.json({ message: 'OK' }, { status: 200 })
 }
 
+// 201 Created
+export const createdResponse = (data: any) => NextResponse.json(data, { status: 201 })
 
 // 4XX Responses
 

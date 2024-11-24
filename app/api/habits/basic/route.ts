@@ -7,13 +7,12 @@ import {
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 
-// Utils
 import {
   verifyToken,
   validateAccessToken
 } from "@/utils/auth/tokens"
 import {
-  okResponse,
+  createdResponse,
   badRequestResponse,
   unauthorizedResponse,
   internalServerErrorResponse
@@ -33,9 +32,9 @@ export async function POST(request: NextRequest) {
     }
 
     const habitId = ulid()
+    const dateNow = new Date().toISOString();
     const idToken = request.cookies.get("id_token")?.value as string;
     const idTokenPayload = await verifyToken(idToken, "id");
-    const dateNow = new Date().toISOString();
 
     const { data, success } = habitSchema.safeParse({
       habit_id: habitId,
@@ -106,7 +105,7 @@ export async function POST(request: NextRequest) {
     )
 
     if (updateItemResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
-    return NextResponse.json({ habitId, habitType: type }, { status: 201 })
+    return createdResponse({ habitId, habitType: type })
   } catch (error) {
     console.error('Error in POST handler:', error)
     return internalServerErrorResponse();

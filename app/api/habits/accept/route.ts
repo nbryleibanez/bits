@@ -1,72 +1,122 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { DynamoDBClient, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, UpdateItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
 
-import { verifyToken } from "@/utils/auth/tokens";
-import { validateAccessToken } from "@/utils/auth/tokens";
+import { habitSchema } from "@/lib/schema";
+import { validateTokens } from "@/utils/auth/tokens";
 import { unauthorizedResponse, internalServerErrorResponse } from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
-const { DYNAMODB_TABLE_USERS, DYNAMODB_TABLE_HABITS } = process.env
+const { DYNAMODB_TABLE_USERS, DYNAMODB_TABLE_HABITS } = process.env;
 
-export async function PATCH(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const payload = await validateAccessToken(request);
+    const payload = await validateTokens(request);
     if (!payload) return unauthorizedResponse();
 
-    const { habitId } = await request.json();
-    const idToken = request.cookies.get('id_token')?.value as string
-    const idTokenPayload = await verifyToken(idToken, "id")
+    const {
+      index,
+      habitId,
+      title,
+      type,
+      ownerId,
+      ownerFullName,
+      ownerAvatarUrl,
+    } = await request.json();
 
-    console.log('check1')
-
-    const updateHabitResponse = await client.send(
-      new UpdateItemCommand({
-        TableName: DYNAMODB_TABLE_HABITS,
-        Key: {
-          habit_id: { S: habitId },
-          status: { S: 'pending' }
+    const { data, success } = habitSchema.safeParse({
+      habit_id: habitId,
+      habit_type: type,
+      owner: payload.access.sub,
+      title: title,
+      streak: 0,
+      created_date: new Date().toISOString(),
+      participants: [
+        {
+          user_id: ownerId,
+          full_name: ownerFullName,
+          avatar_url: ownerAvatarUrl,
+          role: 'owner',
+          is_logged: false,
         },
-        UpdateExpression:
-          "SET participants = list_append(participants, :participant), #status = :habitStatus, created_date = :created_date",
-        ExpressionAttributeNames: { "#status": "status" },
-        ExpressionAttributeValues: {
-          ":created_date": { S: new Date().toISOString() },
-          ":habitStatus": { S: "active" },
-          ":participant": {
-            L: [
-              {
-                M: {
-                  user_id: { S: payload.sub },
-                  full_name: { S: idTokenPayload?.name as string },
-                  avatar_url: { S: idTokenPayload?.picture as string },
-                  role: { S: 'participant' },
-                  is_logged: { BOOL: false }
-                }
+        {
+          user_id: payload.access.sub,
+          full_name: payload.id.name,
+          avatar_url: payload.id.picture,
+          role: 'participant',
+          is_logged: false,
+        }
+      ],
+    });
+
+    if (!success) return internalServerErrorResponse();
+
+    const putItemCommandResponse = await client.send(
+      new PutItemCommand({
+        TableName: DYNAMODB_TABLE_HABITS,
+        Item: {
+          habit_id: { S: data.habit_id },
+          habit_type: { S: data.habit_type },
+          owner: { S: data.owner },
+          title: { S: data.title },
+          streak: { N: data.streak.toString() },
+          created_date: { S: data.created_date },
+          participants: {
+            L: data.participants.map(participant => ({
+              M: {
+                user_id: { S: participant.user_id },
+                full_name: { S: participant.full_name },
+                avatar_url: { S: participant.avatar_url },
+                role: { S: participant.role },
+                is_logged: { BOOL: participant.is_logged },
               }
-            ]
+            })),
+          },
+        }
+      })
+    );
+
+    if (putItemCommandResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+
+    console.log('checkpoint')
+
+    const users = [payload.access.sub, ownerId];
+
+    await Promise.all(users.map(async (userId) => {
+      const isAcceptee = userId === payload.access.sub;
+      const updateUsersResponse = await client.send(
+        new UpdateItemCommand({
+          TableName: DYNAMODB_TABLE_USERS,
+          Key: {
+            user_id: { S: userId },
+          },
+          UpdateExpression:
+            isAcceptee ?
+              `SET habits = list_append(habits, :habit) REMOVE habits_requests[${index}]` :
+              `SET habits = list_append(habits, :habit)`,
+          ExpressionAttributeValues: {
+            ":habit": {
+              L: [
+                {
+                  M: {
+                    habit_id: { S: habitId },
+                    habit_type: { S: type },
+                    title: { S: title },
+                  }
+                }
+              ]
+            }
           }
-        }
-      })
-    )
+        })
+      );
 
-    if (updateHabitResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+      if (updateUsersResponse.$metadata.httpStatusCode !== 200) {
+        throw new Error(`Failed to update user ${userId}`);
+      }
+    }));
 
-    const updateParticipantResponse = await client.send(
-      new UpdateItemCommand({
-        TableName: DYNAMODB_TABLE_USERS,
-        Key: { user_id: { S: payload.sub } },
-        UpdateExpression: "ADD habits :habit_id",
-        ExpressionAttributeValues: {
-          ":habit_id": { SS: [`${habitId}`] }
-        }
-      })
-    )
-    if (updateParticipantResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
-
-    console.log('check3')
     return NextResponse.json({ habitId }, { status: 200 });
   } catch (error) {
-    console.error("Error in PATCH handler: ", error)
+    console.error("Error in PATCH handler:", error);
     return internalServerErrorResponse();
   }
 }

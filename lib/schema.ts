@@ -14,10 +14,15 @@ export const userSchema = z.object({
   habits: z.array(z.object({
     habit_id: z.string().uuid(),
     habit_type: z.enum(['basic', 'cue', 'duo']),
+    title: z.string(),
   })),
   habits_requests: z.array(z.object({
     habit_id: z.string().uuid(),
     habit_type: z.enum(['basic', 'cue', 'duo']),
+    title: z.string(),
+    duo_id: z.string().uuid(),
+    duo_name: z.string(),
+    duo_avatar_url: z.string().url(),
   })),
   friends: z.array(z.object({
     user_id: z.string(),
@@ -40,6 +45,7 @@ export const habitSchema = z.object({
   habit_type: z.enum(['basic', 'cue', 'duo']), // Sort Key
   owner: z.string().uuid(),
   title: z.string(),
+  cue: z.string().optional(),
   streak: z.number(),
   created_date: z.string().datetime(),
   participants: z.array(z.object({

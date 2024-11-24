@@ -1,12 +1,13 @@
+import Link from "next/link"
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/utils/auth/tokens';
 
 import AddFriendForm from "@/components/friends/add-friend-form";
 import FriendRequestButtons from '@/components/friends/friend-request-buttons';
-import BackButton from "@/components/back-button";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { CardHeader, CardContent, Card, } from "@/components/ui/card";
+import { ArrowLeft } from 'lucide-react'
 
 export const metadata = {
   title: 'Friends'
@@ -25,7 +26,9 @@ export default async function FriendsPage() {
   return (
     <main className="min-h-screen p-5 flex flex-col items-center sm:justify-center gap-4">
       <div className='w-full max-w-md cursor-pointer'>
-        <BackButton />
+        <Link href="/">
+          <ArrowLeft className='w-8 h-8' />
+        </Link>
       </div>
       <AddFriendForm token={payload} />
       <Card className="w-full max-w-md">
@@ -37,13 +40,15 @@ export default async function FriendsPage() {
             {
               Item.friend_requests?.L.map((request: any, index: number) => (
                 <div key={request.M.user_id.S} className="flex flex-row items-center justify-between gap-4">
-                  <Avatar className='h-10 w-10'>
-                    <AvatarImage src={request.M.avatar_url.S} alt={request.M.full_name.S} />
-                    <AvatarFallback>
-                      {request.M.full_name.S[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <p>{request.M.full_name.S}</p>
+                  <div className="flex items-center gap-4">
+                    <Avatar className='h-10 w-10'>
+                      <AvatarImage src={request.M.avatar_url.S} alt={request.M.full_name.S} />
+                      <AvatarFallback>
+                        {request.M.full_name.S[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <p>{request.M.full_name.S}</p>
+                  </div>
                   <FriendRequestButtons
                     sourceUserId={Item.user_id.S as string}
                     sourceUsername={Item.username.S as string}

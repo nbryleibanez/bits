@@ -6,56 +6,40 @@ import { useToast } from '@/components/ui/use-toast'
 import { Button } from '@/components/ui/button'
 import { CheckIcon, Cross2Icon } from '@radix-ui/react-icons'
 
-interface Props {
-  sourceUserId: string
-  sourceUsername: string
-  sourceFullName: string
-  sourceAvatarUrl: string
-  targetUserId: string
-  targetUsername: string
-  targetFullName: string
-  targetAvatarUrl: string
-  index: number
-}
-
-export default function FriendRequestButtons({
-  sourceUserId,
-  sourceFullName,
-  sourceAvatarUrl,
-  sourceUsername,
-  targetUserId,
-  targetFullName,
-  targetAvatarUrl,
-  targetUsername,
-  index
-}: Props) {
+export default function HabitRequestButtons({
+  index,
+  habitId,
+  type,
+  title,
+  ownerId,
+  ownerFullName,
+  ownerAvatarUrl,
+}: any) {
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
 
-  const acceptFriendRequest = async () => {
+  const acceptHabitRequest = async () => {
     setLoading(true)
-    // Accept friend request
-    const res = await fetch(`${window.location.origin}/api/friends/accept`, {
+    const res = await fetch(`${window.location.origin}/api/habits/accept`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        sourceUserId,
-        sourceFullName,
-        sourceAvatarUrl,
-        sourceUsername,
-        targetUserId,
-        targetFullName,
-        targetUsername,
-        targetAvatarUrl,
         index,
+        habitId,
+        type,
+        title,
+        ownerId,
+        ownerFullName,
+        ownerAvatarUrl,
       })
     })
 
     setLoading(false)
     router.refresh()
+
     if (!res.ok) {
       return toast({
         variant: "destructive",
@@ -68,14 +52,13 @@ export default function FriendRequestButtons({
       title: 'Friend request accepted',
       description: 'You are now friends with this user',
     })
-
-
+    router.push(`/habit/${habitRequest.habitId.S}`)
   }
 
-  const declineFriendRequest = async () => {
+  const declineHabitRequest = async () => {
     setLoading(true)
-    const res = await fetch(`${window.location.origin}/api/friends/decline`, {
-      method: 'POST',
+    const res = await fetch(`${window.location.origin}/api/habits/decline`, {
+      method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -94,11 +77,11 @@ export default function FriendRequestButtons({
   }
 
   return (
-    <div className='flex gap-2'>
+    <div className='flex justify-between'>
       <Button
         variant="outline"
         className='h-10 w-10 rounded-full'
-        onClick={acceptFriendRequest}
+        onClick={acceptHabitRequest}
         disabled={loading}
       >
         <CheckIcon className='h-10 w-10' />
@@ -106,7 +89,7 @@ export default function FriendRequestButtons({
       <Button
         variant="outline"
         className='h-10 w-10 rounded-full'
-        onClick={declineFriendRequest}
+        onClick={declineHabitRequest}
         disabled={loading}
       >
         <Cross2Icon />
