@@ -10,7 +10,7 @@ export default function HabitCard({ habit }: any) {
     >
       <div className="w-full flex justify-between">
         <div>
-          <div className="text-red-600 text-4xl font-bold">{habit.streak.N}</div>
+          <div className="text-4xl font-bold">{habit.streak.N}</div>
           <div className="text-xs">streak</div>
         </div>
         <div className="flex gap-1">
