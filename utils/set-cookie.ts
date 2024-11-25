@@ -1,7 +1,7 @@
 import { cookies } from "next/headers"
 
 export function setCookie(
-  cookieStore: ReturnType<typeof cookies>,
+  cookieStore: Awaited<ReturnType<typeof cookies>>,
   name: string,
   value: string | undefined,
   maxAge: number

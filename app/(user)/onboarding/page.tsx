@@ -14,7 +14,7 @@ export const metadata = {
 }
 
 export default async function OnboardingPage() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const idToken = cookieStore.get("id_token")?.value as string;
   const payload = await verifyToken(idToken, "id");
 

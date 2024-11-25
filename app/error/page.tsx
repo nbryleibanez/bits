@@ -1,10 +1,11 @@
 interface Props {
-  searchParams: {
+  searchParams: Promise<{
     message: string;
-  };
+  }>;
 }
 
-export default function ErrorPage({ searchParams }: Props) {
+export default async function ErrorPage(props: Props) {
+  const searchParams = await props.searchParams;
   return (
     <div>
       <h1>Sorry something went wrong.</h1>

@@ -5,7 +5,7 @@ const publicRoutes = ["/signin", "/signup"];
 
 export async function middleware(req: NextRequest) {
   const response = NextResponse.next();
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const path: string = req.nextUrl.pathname;
   const hasRefreshToken = cookieStore.has("refresh_token");
 

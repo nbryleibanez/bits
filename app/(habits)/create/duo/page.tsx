@@ -12,7 +12,7 @@ export default async function Page() {
     method: 'GET',
     headers: {
       "Content-Type": "application/json",
-      "Cookie": cookies().toString()
+      "Cookie": (await cookies()).toString()
     }
   })
   const { Item } = await res.json()

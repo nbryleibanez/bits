@@ -9,7 +9,7 @@ const { COGNITO_DOMAIN, COGNITO_APP_CLIENT_ID, COGNITO_APP_CLIENT_SECRET } = pro
 
 export async function GET(request: NextRequest) {
   try {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const origin = request.nextUrl.origin;
     const searchParams = request.nextUrl.searchParams;
 

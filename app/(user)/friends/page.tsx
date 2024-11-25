@@ -14,12 +14,12 @@ export const metadata = {
 }
 
 export default async function FriendsPage() {
-  const payload = await verifyToken(cookies().get('id_token')?.value as string, "id") as unknown as string
+  const payload = await verifyToken((await cookies()).get('id_token')?.value as string, "id") as unknown as string
   const { Item } = await fetch(`${process.env.SITE}/api/users/${payload.sub}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'Cookie': cookies().toString()
+      'Cookie': (await cookies()).toString()
     }
   }).then(res => res.json())
 

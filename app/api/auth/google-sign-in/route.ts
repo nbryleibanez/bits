@@ -7,7 +7,7 @@ import { encrypt } from "@/utils/encryption";
 const { COGNITO_DOMAIN, COGNITO_APP_CLIENT_ID } = process.env;
 
 export async function GET(request: NextRequest) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   let authorizeParams = new URLSearchParams();
   const origin = request.nextUrl.origin;
 

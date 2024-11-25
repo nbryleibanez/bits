@@ -7,7 +7,7 @@ export default async function ProfileCard() {
   let res = await fetch(`${process.env.SITE}/api/users/me`, {
     method: "GET",
     headers: {
-      Cookie: cookies().toString(),
+      Cookie: (await cookies()).toString(),
     },
     cache: "force-cache",
   })

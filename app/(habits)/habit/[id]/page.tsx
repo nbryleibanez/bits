@@ -16,16 +16,17 @@ import {
 } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 
-export default async function HabitPage({
-  params,
-  searchParams
-}: {
-  params: { id: string },
-  searchParams: { type: string }
-}) {
-  const { data } = await getHabit(cookies().toString(), params.id, searchParams.type)
+export default async function HabitPage(
+  props: {
+    params: Promise<{ id: string }>,
+    searchParams: Promise<{ type: string }>
+  }
+) {
+  const searchParams = await props.searchParams;
+  const params = await props.params;
+  const { data } = await getHabit((await cookies()).toString(), params.id, searchParams.type)
 
-  const idTokenPayload = await verifyToken(cookies().get("id_token")?.value as string, "id")
+  const idTokenPayload = await verifyToken((await cookies()).get("id_token")?.value as string, "id")
   const participant = data.participants.L.find((p: any) => p.M.user_id.S === idTokenPayload?.sub)
   const isLogged = participant?.M.is_logged.BOOL
 
