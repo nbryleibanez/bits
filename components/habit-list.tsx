@@ -7,8 +7,9 @@ import HabitRequestCard from "@/components/habit/habit-request-card";
 import { PlusIcon } from "@radix-ui/react-icons"
 
 export default async function HabitList() {
-  const habits = await getHabitsByUserId(cookies)
-  const { habits_requests } = await getHabitRequestsByUserId(cookies)
+  const cookieStore = await cookies()
+  const habits = await getHabitsByUserId(cookieStore)
+  const { habits_requests } = await getHabitRequestsByUserId(cookieStore)
 
   return (
     <div className="h-fit w-full grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">

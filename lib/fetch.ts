@@ -2,7 +2,7 @@ export async function getHabitsByUserId(cookies: any) {
   const { data } = await fetch(`${process.env.SITE}/api/habits`, {
     method: 'GET',
     headers: {
-      "Cookie": cookies().toString(),
+      "Cookie": cookies.toString(),
       "Content-Type": "application/json",
     },
     next: { tags: ["habits"] }
@@ -15,7 +15,7 @@ export async function getHabitRequestsByUserId(cookies: any) {
   const { data } = await fetch(`${process.env.SITE}/api/habits/requests`, {
     method: 'GET',
     headers: {
-      "Cookie": cookies().toString(),
+      "Cookie": cookies.toString(),
       "Content-Type": "application/json",
     },
   }).then(res => res.json())
