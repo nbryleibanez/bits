@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import "@/app/globals.css";
 
 import { Toaster } from "@/components/ui/toaster";
@@ -24,6 +25,7 @@ export default function RootLayout({
           {children}
         </TooltipProvider>
         <Toaster />
+        <SpeedInsights />
       </body>
     </html>
   );
