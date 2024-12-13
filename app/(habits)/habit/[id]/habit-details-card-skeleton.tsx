@@ -39,7 +39,7 @@ export default async function HabitDetailsCardSkeleton() {
           <CheckIcon />
         </Button>
         <Button variant="outline" className="w-full h-12">
-          "Delete"
+          Delete
         </Button>
       </CardFooter>
     </Card>
