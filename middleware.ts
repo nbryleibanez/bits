@@ -9,18 +9,17 @@ export async function middleware(req: NextRequest) {
   const path: string = req.nextUrl.pathname;
   const hasRefreshToken = cookieStore.has("refresh_token");
 
-  if (
-    !hasRefreshToken &&
-    !publicRoutes.some((route: string) => path.startsWith(route))
-  ) {
-    return NextResponse.redirect(new URL("/signin", req.nextUrl));
+  if (!hasRefreshToken && !publicRoutes.some((route: string) => path.startsWith(route))) {
+    return NextResponse.redirect(new URL("/signin", req.nextUrl)); // Redirect to sign in if refresh token is missing
   } else if (hasRefreshToken) {
     const hasAccessToken = cookieStore.has("access_token");
     const accessTokenValue = cookieStore.get("access_token")?.value;
 
+    // if there's no access token
     if (!accessTokenValue || !hasAccessToken) {
       const refreshToken = cookieStore.get("refresh_token")?.value;
 
+      // refresh tokens
       const { idToken, accessToken } = await fetch(`${req.nextUrl.origin}/api/auth/refresh-tokens`, {
         method: "POST",
         headers: {
@@ -30,12 +29,13 @@ export async function middleware(req: NextRequest) {
         body: JSON.stringify({ refreshToken }),
       }).then(res => res.json())
 
+      // set tokens
       response.cookies.set("id_token", idToken, { httpOnly: true, secure: true, sameSite: "lax", maxAge: 3600, });
       response.cookies.set("access_token", accessToken, { httpOnly: true, secure: true, sameSite: "lax", maxAge: 3600, });
     }
 
-    if (path == "/signin")
-      return NextResponse.redirect(new URL("/", req.nextUrl));
+    // if user is in signin page, redirect to home if user has access token
+    if (path == "/signin") return NextResponse.redirect(new URL("/", req.nextUrl));
 
     return response;
   }

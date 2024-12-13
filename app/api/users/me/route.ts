@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     )
 
     if ($metadata.httpStatusCode !== 200 || !Item) return internalServerErrorResponse()
-    return NextResponse.json({ Item }, { status: 200 })
+    return NextResponse.json({ data: Item }, { status: 200 })
   } catch (error) {
     console.error('Error in GET handler: ', error)
     return internalServerErrorResponse()

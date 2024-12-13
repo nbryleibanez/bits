@@ -9,14 +9,14 @@ import { PlusIcon } from "@radix-ui/react-icons"
 export default async function HabitList() {
   const cookieStore = await cookies()
   const habits = await getHabitsByUserId(cookieStore)
-  const { habits_requests } = await getHabitRequestsByUserId(cookieStore)
+  const habitRequests = await getHabitRequestsByUserId(cookieStore)
 
   return (
     <div className="h-fit w-full grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
       {habits?.map((habit: any) => (
         <HabitCard key={habit.habit_id.S} habit={habit} />
       ))}
-      {habits_requests.L.map((habitRequest: any, index: number) => (
+      {habitRequests.map((habitRequest: any, index: number) => (
         <HabitRequestCard key={habitRequest.M.habit_id.S} habitRequest={habitRequest.M} index={index} />
       ))}
       <Link

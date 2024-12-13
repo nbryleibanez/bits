@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse()
 
-    return okResponse(Item)
+    return okResponse(Item?.habits_requests.L)
   } catch (error) {
     console.error("Error in GET handler: ", error)
     return internalServerErrorResponse();
