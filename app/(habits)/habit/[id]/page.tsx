@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link"
 
 import HabitDetailsCard from "@/components/habit/habit-details-card";
+import HabitDetailsCardSkeleton from "./habit-details-card-skeleton";
 import { ArrowLeft } from "lucide-react";
 
 export default async function HabitPage(
@@ -20,7 +21,7 @@ export default async function HabitPage(
           <ArrowLeft className="h-8 w-8" />
         </Link>
       </div>
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<HabitDetailsCardSkeleton />}>
         <HabitDetailsCard params={params} searchParams={searchParams} />
       </Suspense>
     </main>
