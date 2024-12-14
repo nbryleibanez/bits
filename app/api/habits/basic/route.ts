@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { revalidateTag } from "next/cache";
 import { ulid } from "ulid"
 import { habitSchema } from "@/lib/schema"
 import {
@@ -105,6 +106,9 @@ export async function POST(request: NextRequest) {
     )
 
     if (updateItemResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+
+    revalidateTag('habits')
+
     return createdResponse({ habitId, habitType: type })
   } catch (error) {
     console.error('Error in POST handler:', error)

@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { cookies } from 'next/headers';
+import { getUserMe } from '@/lib/fetch'
 import { verifyToken } from '@/utils/auth/tokens';
 
 import AddFriendForm from "@/components/friends/add-friend-form";
@@ -14,14 +15,9 @@ export const metadata = {
 }
 
 export default async function FriendsPage() {
-  const payload = await verifyToken((await cookies()).get('id_token')?.value as string, "id") as unknown as string
-  const { Item } = await fetch(`${process.env.SITE}/api/users/${payload.sub}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      'Cookie': (await cookies()).toString()
-    }
-  }).then(res => res.json())
+  const cookieStore = await cookies()
+  const payload = await verifyToken(cookieStore.get('id_token')?.value as string, "id") as unknown as string
+  const data = await getUserMe(cookieStore)
 
   return (
     <main className="min-h-screen p-5 flex flex-col items-center sm:justify-center gap-4">
@@ -38,7 +34,7 @@ export default async function FriendsPage() {
         <CardContent>
           <div className="flex flex-col gap-2">
             {
-              Item.friend_requests?.L.map((request: any, index: number) => (
+              data.friend_requests?.L.map((request: any, index: number) => (
                 <div key={request.M.user_id.S} className="flex flex-row items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <Avatar className='h-10 w-10'>
@@ -50,10 +46,10 @@ export default async function FriendsPage() {
                     <p>{request.M.full_name.S}</p>
                   </div>
                   <FriendRequestButtons
-                    sourceUserId={Item.user_id.S as string}
-                    sourceUsername={Item.username.S as string}
-                    sourceFullName={Item.full_name.S as string}
-                    sourceAvatarUrl={Item.avatar_url.S as string}
+                    sourceUserId={data.user_id.S as string}
+                    sourceUsername={data.username.S as string}
+                    sourceFullName={data.full_name.S as string}
+                    sourceAvatarUrl={data.avatar_url.S as string}
                     targetUserId={request.M.user_id.S as string}
                     targetUsername={request.M.username.S as string}
                     targetFullName={request.M.full_name.S as string}
@@ -73,7 +69,7 @@ export default async function FriendsPage() {
         <CardContent>
           <div className="flex flex-col gap-2">
             {
-              Item.friends.L.map((f: any) => (
+              data.friends.L.map((f: any) => (
                 <div key={f.M.user_id.S} className="flex flex-row items-center justify-between gap-4">
                   <Avatar className='h-10 w-10'>
                     <AvatarImage src={f.M.avatar_url.S} alt={f.M.full_name.S} />

@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
 import {
   DynamoDBClient,
   GetItemCommand,
@@ -115,6 +116,8 @@ export async function PATCH(request: NextRequest, props: { params: Promise<{ id:
 
     if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
 
+    revalidateTag(`habit/${params.id}`)
+
     return NextResponse.json({ message: "Item updated successfully." }, { status: 200 });
   } catch (error) {
     console.error('Error in PATCH handler:', error);
@@ -147,6 +150,10 @@ export async function DELETE(request: NextRequest, props: { params: Promise<{ id
     )
 
     if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+
+    revalidateTag('habits')
+    revalidateTag(`habit/${params.id}`)
+
     return okResponse();
   } catch (error) {
     console.error('Error in DELETE handler: ', error)

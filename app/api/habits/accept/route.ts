@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { revalidateTag } from "next/cache"
 import { DynamoDBClient, UpdateItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
 
 import { habitSchema } from "@/lib/schema";
@@ -77,8 +78,6 @@ export async function POST(request: NextRequest) {
 
     if (putItemCommandResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
 
-    console.log('checkpoint')
-
     const users = [payload.access.sub, ownerId];
 
     await Promise.all(users.map(async (userId) => {
@@ -113,6 +112,8 @@ export async function POST(request: NextRequest) {
         throw new Error(`Failed to update user ${userId}`);
       }
     }));
+
+    revalidateTag('habits')
 
     return NextResponse.json({ habitId }, { status: 200 });
   } catch (error) {
