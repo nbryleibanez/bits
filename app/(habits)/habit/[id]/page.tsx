@@ -21,10 +21,9 @@ export default async function HabitPage(
           <ArrowLeft className="h-8 w-8" />
         </Link>
       </div>
-      {/* <Suspense fallback={<HabitDetailsCardSkeleton />}> */}
-      {/*   <HabitDetailsCard params={params} searchParams={searchParams} /> */}
-      {/* </Suspense> */}
-      <HabitDetailsCard params={params} searchParams={searchParams} />
+      <Suspense fallback={<HabitDetailsCardSkeleton />}>
+        <HabitDetailsCard params={params} searchParams={searchParams} />
+      </Suspense>
     </main>
   );
 }
