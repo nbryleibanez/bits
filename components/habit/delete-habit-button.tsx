@@ -1,11 +1,10 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useParams, useRouter, useSearchParams } from "next/navigation"
-
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
-import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { revalidateMe, revalidateHabits, revalidateHabit } from "@/app/actions";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,63 +15,73 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
 
-export default function DeleteHabitButton({ owner }: { owner: string }) {
+interface Props {
+  owner: string;
+  isLoading: boolean;
+  isOtherActionRunning: boolean;
+  onAction: (callback: () => Promise<void>) => void;
+}
+
+export default function DeleteHabitButton({
+  owner,
+  isLoading,
+  isOtherActionRunning,
+  onAction,
+}: Props) {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const type = searchParams.get("type");
 
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleDelete = async () => {
-    setIsLoading(true)
-
-    const res = await fetch(`${window.location.origin}/api/habits/${params.id}?type=${type}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ owner }),
+  const handleDelete = () => {
+    onAction(async () => {
+      try {
+        const res = await fetch(
+          `${window.location.origin}/api/habits/${params.id}?type=${type}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ owner }),
+          },
+        );
+        if (!res.ok) {
+          throw new Error("Failed to delete habit");
+        }
+        await revalidateMe();
+        await revalidateHabits();
+        await revalidateHabit(params.id as string);
+        router.push("/");
+        router.refresh();
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Something went wrong.",
+          description: "We're fixing this, Houston.",
+        });
+      }
     });
-
-    if (!res.ok) {
-      toast({
-        variant: "destructive",
-        title: "Something went wrong.",
-        description: "We're fixing this, Houston.",
-      });
-
-      return;
-    }
-
-    toast({
-      title: "Success",
-      description: "Habit deleted.",
-    });
-
-    router.push("/")
-    router.refresh()
-  }
+  };
 
   return (
     <div className="w-full">
       <AlertDialog>
-        <AlertDialogTrigger
-          className="w-full"
-          asChild
-        >
-          <Button disabled={isLoading} variant="outline" className="w-full h-12">
+        <AlertDialogTrigger className="w-full" asChild>
+          <Button
+            disabled={isLoading || isOtherActionRunning}
+            variant="outline"
+            className="w-full h-12"
+          >
             {isLoading ? <LoadingSpinner /> : "Delete"}
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              Delete Habit
-            </AlertDialogTitle>
+            <AlertDialogTitle>Delete Habit</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete this habit?
             </AlertDialogDescription>
@@ -84,5 +93,5 @@ export default function DeleteHabitButton({ owner }: { owner: string }) {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

@@ -13,7 +13,7 @@ interface Props {
   onAction: (callback: () => Promise<void>) => void;
 }
 
-export default function LogHabitButton({
+export default function SkipHabitButton({
   isLogged,
   isLoading,
   isOtherActionRunning,
@@ -25,7 +25,7 @@ export default function LogHabitButton({
   const { toast } = useToast();
   const type = searchParams.get("type");
 
-  const handleLog = () => {
+  const handleSkip = () => {
     onAction(async () => {
       try {
         const res = await fetch(
@@ -35,7 +35,7 @@ export default function LogHabitButton({
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ action: "log" }),
+            body: JSON.stringify({ action: "skip" }),
           },
         );
         if (!res.ok) {
@@ -58,10 +58,11 @@ export default function LogHabitButton({
   return (
     <Button
       className="w-full h-12"
-      onClick={handleLog}
+      onClick={handleSkip}
       disabled={isLogged || isLoading || isOtherActionRunning}
+      variant="outline"
     >
-      {isLoading ? <LoadingSpinner /> : "Log Habit"}
+      {isLoading ? <LoadingSpinner /> : "Skip"}
     </Button>
   );
 }

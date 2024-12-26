@@ -1,10 +1,11 @@
-"use client"
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { revalidateHabits, revalidateMe } from "@/app/actions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,8 +26,8 @@ const FormSchema = z.object({
 
 export default function BasicHabitForm() {
   const router = useRouter();
-  const { toast } = useToast()
-  const [loading, setLoading] = useState(false)
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -36,10 +37,12 @@ export default function BasicHabitForm() {
   });
 
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
+    setLoading(true);
+
     const input = {
       title: form.getValues().title,
-      type: "basic"
-    }
+      type: "basic",
+    };
 
     const res = await fetch(`${window.location.origin}/api/habits/basic`, {
       method: "POST",
@@ -50,46 +53,49 @@ export default function BasicHabitForm() {
     });
 
     if (!res.ok) {
-      const error = await res.json()
+      const error = await res.json();
 
       return toast({
         variant: "destructive",
         title: error.error,
         description: "We're fixing this, Houston.",
-      })
+      });
     }
 
-    toast({
-      title: "Success",
-      description: "Habit successfully created.",
-    })
-
-    const { habitId, habitType } = await res.json()
-
-    router.push(`/habit/${habitId}?type=${habitType}`)
-    router.refresh()
+    await revalidateMe();
+    await revalidateHabits();
+    const { habitId, habitType } = await res.json();
+    router.push(`/habit/${habitId}?type=${habitType}`);
+    router.refresh();
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-6">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex-1 w-full h-full flex flex-col justify-between sm:space-y-6"
+      >
         <FormField
           control={form.control}
           name="title"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Habit Title</FormLabel>
-              <FormControl>
-              </FormControl>
-              <Input {...field} />
+              <FormControl></FormControl>
+              <Input {...field} className="h-12" />
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button onClick={() => setLoading(false)} disabled={loading} className="w-full" type="submit">
+        <Button
+          onClick={() => setLoading(false)}
+          disabled={loading}
+          className="w-full h-12"
+          type="submit"
+        >
           {loading ? <LoadingSpinner /> : "Submit"}
         </Button>
       </form>
     </Form>
-  )
+  );
 }

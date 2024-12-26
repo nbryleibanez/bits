@@ -10,8 +10,8 @@ import {
 } from "@/components/ui/card";
 
 export const metadata = {
-  title: "Onboarding"
-}
+  title: "Onboarding",
+};
 
 export default async function OnboardingPage() {
   const cookieStore = await cookies();
@@ -27,7 +27,10 @@ export default async function OnboardingPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <OnboardingForm firstName={payload?.given_name as string} lastName={payload?.family_name as string} />
+          <OnboardingForm
+            firstName={payload?.given_name as string}
+            lastName={payload?.family_name as string}
+          />
         </CardContent>
         <CardFooter></CardFooter>
       </Card>
