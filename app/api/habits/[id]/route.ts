@@ -87,13 +87,23 @@ export async function PATCH(
     }
 
     const participants =
-      getItemCommandResponse.Item.participants.L?.map((p: any) => ({
-        user_id: p.M.user_id.S,
-        full_name: p.M.full_name.S,
-        avatar_url: p.M.avatar_url.S,
-        is_logged: p.M.is_logged.BOOL,
-        role: p.M.role.S,
-      })) || [];
+      getItemCommandResponse.Item.participants.L?.map(
+        (
+          p: any,
+        ): {
+          user_id: string;
+          full_name: string;
+          avatar_url: string;
+          is_logged: boolean;
+          role: string;
+        } => ({
+          user_id: p.M.user_id.S,
+          full_name: p.M.full_name.S,
+          avatar_url: p.M.avatar_url.S,
+          is_logged: p.M.is_logged.BOOL,
+          role: p.M.role.S,
+        }),
+      ) || [];
 
     const updatedParticipants = participants?.map((participant: any) =>
       participant.user_id === payload.sub
@@ -148,6 +158,9 @@ export async function PATCH(
           timestamp: { S: timestamp.toString() },
           user_id: { S: payload.sub },
           habit_id_timestamp: { S: habitIdTimestamp },
+          title: { S: getItemCommandResponse.Item.title.S as string },
+          habit_type: { S: getItemCommandResponse.Item.habit_type.S as string },
+          action: { S: action },
         },
       }),
     );

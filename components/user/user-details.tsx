@@ -1,17 +1,17 @@
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { getUserMe, getHabitsByUserId } from "@/lib/fetch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { ChevronRight } from "lucide-react";
 
 export default async function UserDetails() {
   const cookieStore = await cookies();
   const data = await getUserMe(cookieStore);
   const habits = await getHabitsByUserId(cookieStore);
 
-  console.log(data.habits.L);
-  console.log(habits);
-
-  const streaks = habits.map((item) => Number(item.streak.N));
-  const highestStreak = Math.max(streaks);
+  const streaks = habits.map((item: any) => Number(item.streak.N));
+  const highestStreak = Math.max(...streaks);
 
   return (
     <div className="min-h-fit space-y-4">
@@ -25,14 +25,55 @@ export default async function UserDetails() {
           <p>@{data.username.S}</p>
         </div>
       </div>
-      <div className="w-full h-fit flex items-center rounded-xl border border-grey-100">
-        <div className="flex-1 p-4 border-r border-grey-100">
+      <div className="w-full h-fit flex items-center rounded-xl border border-gray-200">
+        <div className="flex-1 p-4 border-r border-gray-200">
           <p className="font-light">Habits</p>
           <p className="text-2xl font-semibold">{habits.length}</p>
         </div>
         <div className="flex-1 p-4">
           <p className="font-light">Highest Streak</p>
           <p className="text-2xl font-semibold">{highestStreak}</p>
+        </div>
+      </div>
+      <div className="w-full h-fit flex flex-col gap-3 p-4 rounded-xl border border-gray-200">
+        <div className="flex justify-between">
+          <p>Username</p>
+          <div className="flex gap-2">
+            <p className="text-gray-600">{data.username.S}</p>
+            <Link href="/user/me/edit/username">
+              <ChevronRight />
+            </Link>
+          </div>
+        </div>
+        <Separator />
+        <div className="flex justify-between">
+          <p>Name</p>
+          <div className="flex gap-2">
+            <p className="text-gray-600">{data.full_name.S}</p>
+            <Link href="/user/me/edit">
+              <ChevronRight />
+            </Link>
+          </div>
+        </div>
+        <Separator />
+        <div className="flex justify-between">
+          <p>Sex</p>
+          <div className="flex gap-2">
+            <p className="text-gray-600">{data.sex.S}</p>
+            <Link href="/user/me/edit">
+              <ChevronRight />
+            </Link>
+          </div>
+        </div>
+        <Separator />
+        <div className="flex justify-between">
+          <p>Age</p>
+          <div className="flex gap-2">
+            <p className="text-gray-600">{data.age.N}</p>
+            <Link href="/user/me/edit">
+              <ChevronRight />
+            </Link>
+          </div>
         </div>
       </div>
     </div>

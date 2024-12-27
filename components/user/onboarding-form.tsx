@@ -14,7 +14,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import {
   Form,
   FormControl,
@@ -53,7 +53,7 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values)
+    console.log(values);
     const res = await fetch(`${origin}/api/users`, {
       method: "POST",
       headers: {
@@ -76,7 +76,7 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
           variant: "destructive",
           title: data.error,
           description: data.message || "You're missing something.",
-        })
+        });
       }
 
       return toast({
@@ -103,10 +103,7 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input
-                    className="h-12 border-[#aaaaaa]"
-                    {...field}
-                  />
+                  <Input className="h-12 border-[#aaaaaa]" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -119,10 +116,7 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
               <FormItem>
                 <FormLabel>First Name</FormLabel>
                 <FormControl>
-                  <Input
-                    className="h-12 border-[#aaaaaa]"
-                    {...field}
-                  />
+                  <Input className="h-12 border-[#aaaaaa]" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -135,10 +129,7 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
               <FormItem>
                 <FormLabel>Last Name</FormLabel>
                 <FormControl>
-                  <Input
-                    className="h-12 border-[#aaaaaa]"
-                    {...field}
-                  />
+                  <Input className="h-12 border-[#aaaaaa]" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -160,8 +151,8 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="female">Female</SelectItem>
-                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="Male">Female</SelectItem>
+                    <SelectItem value="Female">Male</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -179,7 +170,9 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
                     className="h-12 border-[#aaaaaa]"
                     type="number"
                     {...field}
-                    onChange={(e) => { field.onChange(parseInt(e.target.value)) }}
+                    onChange={(e) => {
+                      field.onChange(parseInt(e.target.value));
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
