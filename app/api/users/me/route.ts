@@ -6,7 +6,6 @@ import {
   QueryCommand,
 } from "@aws-sdk/client-dynamodb";
 
-// Utils
 import { validateAccessToken } from "@/utils/auth/tokens";
 import {
   unauthorizedResponse,
@@ -48,18 +47,26 @@ export async function PATCH(request: NextRequest) {
 
     const body = await request.json();
 
-    const validAttributes = ["username", "full_name", "age", "sex"];
+    // Define attribute mapping
+    const attributeMapping = {
+      username: { dbField: "username", placeholder: ":username" },
+      firstName: { dbField: "first_name", placeholder: ":first_name" },
+      lastName: { dbField: "last_name", placeholder: ":last_name" },
+      sex: { dbField: "sex", placeholder: ":sex" },
+      birthDate: { dbField: "birth_date", placeholder: ":birth_date" },
+    } as const;
+
+    // Filter valid and changed attributes
     const updateAttributes = Object.keys(body).filter(
-      (key) => validAttributes.includes(key) && body[key] !== undefined,
+      (key) => key in attributeMapping && body[key] !== undefined,
     );
 
     if (updateAttributes.length === 0) {
       return badRequestResponse("No valid attributes provided for update");
     }
 
-    // If username is being updated, check for uniqueness
+    // Username uniqueness check
     if (body.username) {
-      // First get the current user to check if the username is actually changing
       const { Item: currentUser } = await client.send(
         new GetItemCommand({
           TableName: DYNAMODB_TABLE_USERS,
@@ -69,7 +76,6 @@ export async function PATCH(request: NextRequest) {
         }),
       );
 
-      // Only check for conflicts if the username is actually different
       if (!currentUser || currentUser.username.S !== body.username) {
         const usernameExists = await checkUsernameExists(body.username);
         if (usernameExists) {
@@ -78,21 +84,46 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    // Build dynamic update expression and attribute values
-    const updateExpressions: string[] = [];
-    const expressionAttributeValues: Record<string, any> = {};
+    // Build update expression and attribute values
+    const { updateExpressions, expressionAttributeValues } =
+      updateAttributes.reduce(
+        (acc, attr) => {
+          const { dbField, placeholder } =
+            attributeMapping[attr as keyof typeof attributeMapping];
+          acc.updateExpressions.push(`${dbField} = ${placeholder}`);
+          acc.expressionAttributeValues[placeholder] = { S: body[attr] };
+          return acc;
+        },
+        {
+          updateExpressions: [] as string[],
+          expressionAttributeValues: {} as Record<string, any>,
+        },
+      );
 
-    updateAttributes.forEach((attr) => {
-      const placeholder = `:${attr}`;
-      updateExpressions.push(`${attr} = ${placeholder}`);
+    // Handle full_name update if first_name or last_name is changing
+    const isNameChanging =
+      body.firstName !== undefined || body.lastName !== undefined;
 
-      // Handle different attribute types
-      if (attr === "age") {
-        expressionAttributeValues[placeholder] = { N: body[attr].toString() };
-      } else {
-        expressionAttributeValues[placeholder] = { S: body[attr] };
+    if (isNameChanging) {
+      // Get current user data for the unchanged name part
+      const { Item: currentUser } = await client.send(
+        new GetItemCommand({
+          TableName: DYNAMODB_TABLE_USERS,
+          Key: {
+            user_id: { S: payload.sub },
+          },
+        }),
+      );
+
+      if (currentUser) {
+        const firstName = body.firstName || currentUser.first_name.S;
+        const lastName = body.lastName || currentUser.last_name.S;
+        const fullName = `${firstName} ${lastName}`.trim();
+
+        updateExpressions.push("full_name = :full_name");
+        expressionAttributeValues[":full_name"] = { S: fullName };
       }
-    });
+    }
 
     const { $metadata } = await client.send(
       new UpdateItemCommand({
@@ -107,7 +138,6 @@ export async function PATCH(request: NextRequest) {
     );
 
     if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
-
     return okResponse();
   } catch (error) {
     console.error("Error in PATCH handler: ", error);

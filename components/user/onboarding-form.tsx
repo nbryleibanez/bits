@@ -1,13 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { format, startOfDay } from "date-fns";
+import { cn } from "@/lib/utils";
 import { z } from "zod";
+import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
 import { useToast } from "@/components/ui/use-toast";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -23,6 +32,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { CalendarIcon } from "lucide-react";
 
 interface Props {
   firstName: string;
@@ -33,38 +43,40 @@ const formSchema = z.object({
   username: z.string().min(1, { message: "Username is required" }),
   firstName: z.string().min(1, { message: "First name is required" }),
   lastName: z.string().min(1, { message: "Last name is required" }),
-  sex: z.enum(["male", "female"]),
-  age: z.number().gte(18, { message: "You must be 18 years old" }),
+  sex: z.enum(["Male", "Female"]),
+  birthDate: z
+    .date({
+      required_error: "Please select a date",
+    })
+    .transform((date) => startOfDay(date)),
 });
 
 export default function OnboardingForm({ firstName, lastName }: Props) {
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
     defaultValues: {
       username: "",
       firstName: firstName,
       lastName: lastName,
       sex: undefined,
-      age: undefined,
+      birthDate: undefined,
     },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
+    setLoading(true);
+
     const res = await fetch(`${origin}/api/users`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        username: values.username,
-        firstName: values.firstName,
-        lastName: values.lastName,
-        sex: values.sex,
-        age: values.age,
+        ...values,
+        birthDate: format(values.birthDate, "yyyy-MM-dd"),
       }),
     });
 
@@ -103,7 +115,7 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
               <FormItem>
                 <FormLabel>Username</FormLabel>
                 <FormControl>
-                  <Input className="h-12 border-[#aaaaaa]" {...field} />
+                  <Input className="h-12 border border-gray-300" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -116,7 +128,7 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
               <FormItem>
                 <FormLabel>First Name</FormLabel>
                 <FormControl>
-                  <Input className="h-12 border-[#aaaaaa]" {...field} />
+                  <Input className="h-12 border border-gray-300" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -129,7 +141,7 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
               <FormItem>
                 <FormLabel>Last Name</FormLabel>
                 <FormControl>
-                  <Input className="h-12 border-[#aaaaaa]" {...field} />
+                  <Input className="h-12 border border-gray-300" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -146,13 +158,13 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-12 border border-gray-300">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="Male">Female</SelectItem>
-                    <SelectItem value="Female">Male</SelectItem>
+                    <SelectItem value="Male">Male</SelectItem>
+                    <SelectItem value="Female">Female</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -161,25 +173,48 @@ export default function OnboardingForm({ firstName, lastName }: Props) {
           />
           <FormField
             control={form.control}
-            name="age"
+            name="birthDate"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Age</FormLabel>
-                <FormControl>
-                  <Input
-                    className="h-12 border-[#aaaaaa]"
-                    type="number"
-                    {...field}
-                    onChange={(e) => {
-                      field.onChange(parseInt(e.target.value));
-                    }}
-                  />
-                </FormControl>
+              <FormItem className="flex flex-col">
+                <FormLabel>Date of Birth</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className={cn(
+                          "h-12 w-full justify-start pl-3 text-left font-normal border border-gray-300",
+                          !field.value && "text-muted-foreground",
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {field.value ? (
+                          format(field.value, "MMMM d, yyyy")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1900-01-01")
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
                 <FormMessage />
               </FormItem>
             )}
           />
-          <Button className="w-full h-12 font-bold">Submit</Button>
+          <Button className="w-full h-12 font-bold" disabled={loading}>
+            {loading ? <LoadingSpinner /> : "Submit"}
+          </Button>
         </form>
       </Form>
     </div>

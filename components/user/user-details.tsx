@@ -10,8 +10,13 @@ export default async function UserDetails() {
   const data = await getUserMe(cookieStore);
   const habits = await getHabitsByUserId(cookieStore);
 
-  const streaks = habits.map((item: any) => Number(item.streak.N));
-  const highestStreak = Math.max(...streaks);
+  let highestStreak;
+  if (habits.length === 0) {
+    highestStreak = 0;
+  } else {
+    const streaks = habits.map((item: any) => Number(item.streak.N));
+    highestStreak = Math.max(...streaks);
+  }
 
   return (
     <div className="min-h-fit space-y-4">
@@ -50,7 +55,7 @@ export default async function UserDetails() {
           <p>Name</p>
           <div className="flex gap-2">
             <p className="text-gray-600">{data.full_name.S}</p>
-            <Link href="/user/me/edit">
+            <Link href="/user/me/edit/name">
               <ChevronRight />
             </Link>
           </div>
@@ -60,17 +65,17 @@ export default async function UserDetails() {
           <p>Sex</p>
           <div className="flex gap-2">
             <p className="text-gray-600">{data.sex.S}</p>
-            <Link href="/user/me/edit">
+            <Link href="/user/me/edit/sex">
               <ChevronRight />
             </Link>
           </div>
         </div>
         <Separator />
         <div className="flex justify-between">
-          <p>Age</p>
+          <p>Date of Birth</p>
           <div className="flex gap-2">
-            <p className="text-gray-600">{data.age.N}</p>
-            <Link href="/user/me/edit">
+            <p className="text-gray-600">{data.birth_date.S}</p>
+            <Link href="/user/me/edit/birth-date">
               <ChevronRight />
             </Link>
           </div>

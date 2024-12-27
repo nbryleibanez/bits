@@ -2,12 +2,7 @@ import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth/tokens";
 
 import OnboardingForm from "@/components/user/onboarding-form";
-import {
-  CardHeader,
-  CardContent,
-  CardFooter,
-  Card,
-} from "@/components/ui/card";
+import { CardHeader, CardContent, Card } from "@/components/ui/card";
 
 export const metadata = {
   title: "Onboarding",
@@ -32,7 +27,6 @@ export default async function OnboardingPage() {
             lastName={payload?.family_name as string}
           />
         </CardContent>
-        <CardFooter></CardFooter>
       </Card>
     </main>
   );
