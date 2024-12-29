@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { getUserMe, getHabits } from "@/lib/fetch";
+import { getUserMe, getHabitsByUserId } from "@/lib/fetch";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { ChevronRight } from "lucide-react";
@@ -8,7 +8,7 @@ import { ChevronRight } from "lucide-react";
 export default async function UserDetails() {
   const cookieStore = await cookies();
   const data = await getUserMe(cookieStore);
-  const habits = await getHabits(cookieStore);
+  const habits = await getHabitsByUserId(cookieStore, data.user_id.S);
 
   let highestStreak;
   if (habits.length === 0) {
