@@ -38,13 +38,15 @@ export default function LogHabitButton({
             body: JSON.stringify({ action: "log" }),
           },
         );
+
         if (!res.ok) {
           throw new Error("Failed to log habit");
         }
+
         await revalidateHabits();
         await revalidateMe();
         await revalidateHabit(params.id as string);
-        router.refresh();
+        // router.refresh();
       } catch (error) {
         toast({
           variant: "destructive",

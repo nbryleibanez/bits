@@ -9,51 +9,35 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface Props {
   sourceUserId: string;
-  sourceUsername: string;
-  sourceFullName: string;
-  sourceAvatarUrl: string;
   targetUserId: string;
   targetUsername: string;
-  targetFullName: string;
-  targetAvatarUrl: string;
-  index: number;
 }
 
-export default function AcceptRequestButton({
+export default function UnfriendButton({
   sourceUserId,
-  sourceFullName,
-  sourceAvatarUrl,
-  sourceUsername,
   targetUserId,
-  targetFullName,
-  targetAvatarUrl,
   targetUsername,
-  index,
 }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const handleAddFriend = async () => {
+  const handleUnfriend = async () => {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`${window.location.origin}/api/friends/accept`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `${window.location.origin}/api/friends/unfriend`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            sourceUserId,
+            targetUserId,
+          }),
         },
-        body: JSON.stringify({
-          sourceUserId,
-          sourceFullName,
-          sourceAvatarUrl,
-          sourceUsername,
-          targetUserId,
-          targetFullName,
-          targetUsername,
-          targetAvatarUrl,
-          index,
-        }),
-      });
+      );
 
       if (!res.ok) throw new Error();
 
@@ -72,10 +56,10 @@ export default function AcceptRequestButton({
   return (
     <Button
       className="w-full h-12 mt-auto rounded-xl"
-      onClick={handleAddFriend}
+      onClick={handleUnfriend}
       disabled={isLoading}
     >
-      {isLoading ? <LoadingSpinner /> : "Accept"}
+      {isLoading ? <LoadingSpinner /> : "Unfriend"}
     </Button>
   );
 }

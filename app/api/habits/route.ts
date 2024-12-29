@@ -23,11 +23,14 @@ export async function GET(request: NextRequest) {
     const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
+    const id = request.nextUrl.searchParams.get("id") as string;
+    const user_id = id ? id : payload.sub;
+
     const getUserResponse = await client.send(
       new GetItemCommand({
         TableName: DYNAMODB_TABLE_USERS,
         Key: {
-          user_id: { S: payload.sub },
+          user_id: { S: user_id },
         },
         ProjectionExpression: "habits",
       }),

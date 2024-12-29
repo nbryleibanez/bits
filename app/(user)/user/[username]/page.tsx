@@ -1,9 +1,10 @@
 import { cookies } from "next/headers";
 import { getUserMe, getUserByUsername, getHabitsByUserId } from "@/lib/fetch";
 
+import BackButton from "@/components/back-button";
 import AddFriendButton from "@/components/friends/add-friend-button";
 import AcceptRequestButton from "@/components/friends/accept-request-button";
-import BackButton from "@/components/back-button";
+import UnfriendButton from "@/components/friends/unfriend-button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default async function Page(props: {
@@ -13,7 +14,15 @@ export default async function Page(props: {
   const params = await props.params;
   const me = await getUserMe(cookieStore);
   const user = await getUserByUsername(cookieStore, params.username);
-  const habits = await getHabitsByUserId(cookieStore);
+  const habits = await getHabitsByUserId(cookieStore, user.user_id.S);
+
+  let highestStreak;
+  if (habits.length === 0) {
+    highestStreak = 0;
+  } else {
+    const streaks = habits.map((item: any) => Number(item.streak.N));
+    highestStreak = Math.max(...streaks);
+  }
 
   const isFriend = me.friends.L.some(
     (f: any) => f.M?.username?.S === params.username,
@@ -27,13 +36,9 @@ export default async function Page(props: {
     (r: any) => r.M?.user_id.S === me.user_id.S,
   );
 
-  let highestStreak;
-  if (habits.length === 0) {
-    highestStreak = 0;
-  } else {
-    const streaks = habits.map((item: any) => Number(item.streak.N));
-    highestStreak = Math.max(...streaks);
-  }
+  const index = me.friend_requests.L.findIndex(
+    (r: any) => r.M?.username.S === params.username,
+  );
 
   return (
     <main className="min-h-screen flex flex-col gap-4 p-5">
@@ -60,8 +65,24 @@ export default async function Page(props: {
           </div>
         </div>
       </div>
-      {isFriend ? null : isRequesting ? (
-        <AcceptRequestButton />
+      {isFriend ? (
+        <UnfriendButton
+          sourceUserId={me.user_id.S as string}
+          targetUserId={user.user_id.S as string}
+          targetUsername={user.username.S as string}
+        />
+      ) : isRequesting ? (
+        <AcceptRequestButton
+          sourceUserId={me.user_id.S as string}
+          sourceUsername={me.username.S as string}
+          sourceFullName={me.full_name.S as string}
+          sourceAvatarUrl={me.avatar_url.S as string}
+          targetUserId={user.user_id.S as string}
+          targetUsername={user.username.S as string}
+          targetFullName={user.full_name.S as string}
+          targetAvatarUrl={user.avatar_url.S as string}
+          index={index}
+        />
       ) : (
         <AddFriendButton
           isSentRequest={isSentRequest}

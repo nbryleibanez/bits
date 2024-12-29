@@ -3,8 +3,6 @@ import { cookies } from "next/headers";
 import { getUserMe } from "@/lib/fetch";
 
 import SearchBar from "@/components/friends/search-bar";
-import FriendRequestButtons from "@/components/friends/friend-request-buttons";
-
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { CardHeader, CardContent, Card } from "@/components/ui/card";
 import { ArrowLeft, ChevronRight } from "lucide-react";
@@ -72,11 +70,21 @@ export default async function FriendsPage() {
                   key={f.M.user_id.S}
                   className="flex flex-row items-center justify-between gap-4"
                 >
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={f.M.avatar_url.S} alt={f.M.full_name.S} />
-                    <AvatarFallback>{f.M.full_name.S[0]}</AvatarFallback>
-                  </Avatar>
-                  <p>{f.M.full_name.S}</p>
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-10 w-10">
+                      <Avatar className="h-10 w-10">
+                        <AvatarImage
+                          src={f.M.avatar_url.S}
+                          alt={f.M.full_name.S}
+                        />
+                        <AvatarFallback>{f.M.full_name.S[0]}</AvatarFallback>
+                      </Avatar>
+                    </Avatar>
+                    <p>{f.M.full_name.S}</p>
+                  </div>
+                  <Link href={`/user/${f.M.username.S}`}>
+                    <ChevronRight />
+                  </Link>
                 </div>
               ))
             ) : (

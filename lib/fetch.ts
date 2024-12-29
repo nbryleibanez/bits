@@ -1,20 +1,3 @@
-export async function getHabitsByUserId(cookies: any) {
-  const { data } = await fetch(`${process.env.SITE}/api/habits`, {
-    method: "GET",
-    cache: "force-cache",
-    headers: {
-      Cookie: cookies.toString(),
-      "Content-Type": "application/json",
-    },
-    next: {
-      tags: ["habits"],
-      revalidate: 1800,
-    },
-  }).then((res) => res.json());
-
-  return data;
-}
-
 export async function getHabit(cookies: any, id: string, type: string) {
   const response = await fetch(
     `${process.env.SITE}/api/habits/${id}?type=${type}`,
@@ -33,6 +16,40 @@ export async function getHabit(cookies: any, id: string, type: string) {
   ).then((res) => res.json());
 
   return response;
+}
+
+export async function getHabits(cookies: any) {
+  const { data } = await fetch(`${process.env.SITE}/api/habits`, {
+    method: "GET",
+    cache: "force-cache",
+    headers: {
+      Cookie: cookies.toString(),
+      "Content-Type": "application/json",
+    },
+    next: {
+      tags: ["habits"],
+      revalidate: 1800,
+    },
+  }).then((res) => res.json());
+
+  return data;
+}
+
+export async function getHabitsByUserId(cookies: any, id: string) {
+  const { data } = await fetch(`${process.env.SITE}/api/habits?id=${id}`, {
+    method: "GET",
+    cache: "force-cache",
+    headers: {
+      Cookie: cookies.toString(),
+      "Content-Type": "application/json",
+    },
+    next: {
+      tags: [`/user/${id}/habits`],
+      revalidate: 1800,
+    },
+  }).then((res) => res.json());
+
+  return data;
 }
 
 export async function getHabitRequestsByUserId(cookies: any) {
