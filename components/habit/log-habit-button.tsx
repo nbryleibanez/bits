@@ -1,57 +1,75 @@
-"use client"
+"use client";
 
-import { useRouter, useParams, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
+import {
+  revalidateHabit,
+  revalidateHabits,
+  revalidateUser,
+} from "@/app/actions";
 import { Button } from "@/components/ui/button";
-import { CheckIcon } from "@radix-ui/react-icons";
-
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/components/ui/use-toast";
 
 interface Props {
-  streak: number;
+  userId: string;
+  username: string;
   isLogged: boolean;
+  isLoading: boolean;
+  isOtherActionRunning: boolean;
+  onAction: (callback: () => Promise<void>) => void;
 }
 
-export default function LogHabitButton({ streak, isLogged }: Props) {
+export default function LogHabitButton({
+  userId,
+  username,
+  isLogged,
+  isLoading,
+  isOtherActionRunning,
+  onAction,
+}: Props) {
   const params = useParams();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
-
   const type = searchParams.get("type");
 
-  const handleLog = async () => {
-    const res = await fetch(`${window.location.origin}/api/habits/${params.id}?type=${type}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ streak: streak })
+  const handleLog = () => {
+    onAction(async () => {
+      try {
+        const res = await fetch(
+          `${window.location.origin}/api/habits/${params.id}?type=${type}`,
+          {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ action: "log" }),
+          },
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to log habit");
+        }
+
+        await revalidateHabits(userId);
+        await revalidateUser(username);
+        await revalidateHabit(params.id as string);
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: "Something went wrong.",
+          description: "We're fixing this, Houston.",
+        });
+      }
     });
+  };
 
-    if (!res.ok) {
-      toast({
-        variant: "destructive",
-        title: "Something went wrong.",
-        description: "We're fixing this, Houston.",
-      });
-      return;
-    }
-
-    toast({
-      title: "Success",
-      description: "Habit logged.",
-    });
-
-    router.refresh()
-  }
   return (
     <Button
       className="w-full h-12"
       onClick={handleLog}
-      disabled={isLogged}
+      disabled={isLogged || isLoading || isOtherActionRunning}
     >
-      <CheckIcon />
+      {isLoading ? <LoadingSpinner /> : "Log Habit"}
     </Button>
-  )
-
+  );
 }

@@ -1,10 +1,21 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { userSchema } from "@/lib/schema";
 import { verifyToken, validateAccessToken } from "@/utils/auth/tokens";
-import { badRequestResponse, unauthorizedResponse, internalServerErrorResponse } from "@/utils/http/responses";
+import {
+  badRequestResponse,
+  unauthorizedResponse,
+  internalServerErrorResponse,
+} from "@/utils/http/responses";
 
-import { CognitoIdentityProviderClient, UpdateUserAttributesCommand } from "@aws-sdk/client-cognito-identity-provider";
-import { DynamoDBClient, PutItemCommand, QueryCommand } from "@aws-sdk/client-dynamodb";
+import {
+  CognitoIdentityProviderClient,
+  UpdateUserAttributesCommand,
+} from "@aws-sdk/client-cognito-identity-provider";
+import {
+  DynamoDBClient,
+  PutItemCommand,
+  QueryCommand,
+} from "@aws-sdk/client-dynamodb";
 
 const client = new DynamoDBClient({});
 const CognitoClient = new CognitoIdentityProviderClient({});
@@ -16,13 +27,8 @@ export async function POST(request: NextRequest) {
     const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
-    const {
-      username,
-      firstName,
-      lastName,
-      sex,
-      age,
-    } = await request.json();
+    const { username, firstName, lastName, sex, birthDate } =
+      await request.json();
 
     const fullName = `${firstName} ${lastName}`;
     const accessToken = request.cookies.get("access_token")?.value as string;
@@ -40,11 +46,16 @@ export async function POST(request: NextRequest) {
           ExpressionAttributeValues: {
             ":username": { S: username },
           },
-        })
-      )
+        }),
+      );
 
-      if (getItemResponse.Count != 0) return badRequestResponse("Username already exists. Please choose another one.");
-    } catch (error) { console.log("Error: ", error); }
+      if (getItemResponse.Count != 0)
+        return badRequestResponse(
+          "Username already exists. Please choose another one.",
+        );
+    } catch (error) {
+      console.log("Error: ", error);
+    }
 
     const { success, data } = userSchema.safeParse({
       user_id: payload.sub,
@@ -54,7 +65,7 @@ export async function POST(request: NextRequest) {
       last_name: lastName,
       full_name: fullName,
       sex: sex,
-      age: age,
+      birth_date: birthDate,
       avatar_url: idTokenPayload?.picture,
       created_date: new Date().toISOString(),
       habits: [],
@@ -76,7 +87,7 @@ export async function POST(request: NextRequest) {
           last_name: { S: data.last_name },
           full_name: { S: data.full_name },
           sex: { S: data.sex },
-          age: { N: data.age.toString() },
+          birth_date: { S: data.birth_date },
           avatar_url: { S: data.avatar_url as string },
           created_date: { S: data.created_date },
           habits: { L: [] },
@@ -100,23 +111,30 @@ export async function POST(request: NextRequest) {
           {
             Name: "custom:username",
             Value: username,
-          }
+          },
         ],
-      })
+      }),
     );
 
-    if (updateUserAttributesResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+    if (updateUserAttributesResponse.$metadata.httpStatusCode !== 200)
+      return internalServerErrorResponse();
 
-    const refreshTokenResponse = await fetch(`${process.env.SITE}/api/auth/refresh-tokens`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const refreshTokenResponse = await fetch(
+      `${process.env.SITE}/api/auth/refresh-tokens`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refreshToken }),
       },
-      body: JSON.stringify({ refreshToken }),
-    });
+    );
 
     const tokens = await refreshTokenResponse.json();
-    const response = NextResponse.json({ message: "User creation successful." }, { status: 201 });
+    const response = NextResponse.json(
+      { message: "User creation successful." },
+      { status: 201 },
+    );
     response.cookies.set("access_token", tokens.accessToken, {
       httpOnly: true,
       secure: true,

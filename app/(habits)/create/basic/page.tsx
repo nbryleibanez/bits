@@ -1,22 +1,34 @@
 import Link from "next/link";
-import BasicHabitForm from "@/components/habit/basic-habit-form"
+import { cookies } from "next/headers";
+import { getUserMe } from "@/lib/fetch";
+import BasicHabitForm from "@/components/habit/basic-habit-form";
 
-import {
-  CardHeader,
-  CardContent,
-  Card,
-} from "@/components/ui/card";
+import { CardHeader, CardContent, Card } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 
-export default function Page() {
+export default async function Page() {
+  const cookieStore = await cookies();
+  const { user_id, username } = await getUserMe(cookieStore);
+
   return (
-    <main className="relative flex flex-col min-h-screen items-center justify-center p-5 gap-4">
-      <div className="absolute sm:relative left-5 top-5 sm:left-0 sm:top-0 w-full max-w-md">
+    <main className="flex flex-col min-h-screen items-center sm:justify-center p-5 gap-4">
+      <div className="w-full max-w-md">
         <Link className="w-fit h-fit" href="/create">
           <ArrowLeft className="h-8 w-8" />
         </Link>
       </div>
-      <Card className="w-full max-w-md">
+
+      {/* Mobile view (up to sm breakpoint) */}
+      <div className="flex-1 w-full max-w-md sm:hidden flex flex-col gap-8">
+        <div>
+          <h1 className="text-xl font-semibold">Create Basic Habit</h1>
+          <p className="mt-2 text-gray-600">Remember: Make it easy.</p>
+        </div>
+        <BasicHabitForm userId={user_id.S} username={username.S} />
+      </div>
+
+      {/* Desktop view (sm breakpoint and above) */}
+      <Card className="w-full max-w-md hidden sm:block">
         <CardHeader>
           <div>
             <h1 className="text-xl font-semibold">Create Basic Habit</h1>
@@ -24,9 +36,9 @@ export default function Page() {
           </div>
         </CardHeader>
         <CardContent>
-          <BasicHabitForm />
+          <BasicHabitForm userId={user_id.S} username={username.S} />
         </CardContent>
       </Card>
-    </main >
-  )
+    </main>
+  );
 }

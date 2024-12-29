@@ -1,10 +1,16 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { revalidateTag } from "next/cache"
-import { DynamoDBClient, UpdateItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  UpdateItemCommand,
+  PutItemCommand,
+} from "@aws-sdk/client-dynamodb";
 
 import { habitSchema } from "@/lib/schema";
 import { validateTokens } from "@/utils/auth/tokens";
-import { unauthorizedResponse, internalServerErrorResponse } from "@/utils/http/responses";
+import {
+  unauthorizedResponse,
+  internalServerErrorResponse,
+} from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_USERS, DYNAMODB_TABLE_HABITS } = process.env;
@@ -36,16 +42,16 @@ export async function POST(request: NextRequest) {
           user_id: ownerId,
           full_name: ownerFullName,
           avatar_url: ownerAvatarUrl,
-          role: 'owner',
+          role: "owner",
           is_logged: false,
         },
         {
           user_id: payload.access.sub,
           full_name: payload.id.name,
           avatar_url: payload.id.picture,
-          role: 'participant',
+          role: "participant",
           is_logged: false,
-        }
+        },
       ],
     });
 
@@ -62,58 +68,58 @@ export async function POST(request: NextRequest) {
           streak: { N: data.streak.toString() },
           created_date: { S: data.created_date },
           participants: {
-            L: data.participants.map(participant => ({
+            L: data.participants.map((participant) => ({
               M: {
                 user_id: { S: participant.user_id },
                 full_name: { S: participant.full_name },
                 avatar_url: { S: participant.avatar_url },
                 role: { S: participant.role },
                 is_logged: { BOOL: participant.is_logged },
-              }
+              },
             })),
           },
-        }
-      })
+        },
+      }),
     );
 
-    if (putItemCommandResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+    if (putItemCommandResponse.$metadata.httpStatusCode !== 200)
+      return internalServerErrorResponse();
 
     const users = [payload.access.sub, ownerId];
 
-    await Promise.all(users.map(async (userId) => {
-      const isAcceptee = userId === payload.access.sub;
-      const updateUsersResponse = await client.send(
-        new UpdateItemCommand({
-          TableName: DYNAMODB_TABLE_USERS,
-          Key: {
-            user_id: { S: userId },
-          },
-          UpdateExpression:
-            isAcceptee ?
-              `SET habits = list_append(habits, :habit) REMOVE habits_requests[${index}]` :
-              `SET habits = list_append(habits, :habit)`,
-          ExpressionAttributeValues: {
-            ":habit": {
-              L: [
-                {
-                  M: {
-                    habit_id: { S: habitId },
-                    habit_type: { S: type },
-                    title: { S: title },
-                  }
-                }
-              ]
-            }
-          }
-        })
-      );
+    await Promise.all(
+      users.map(async (userId) => {
+        const isAcceptee = userId === payload.access.sub;
+        const updateUsersResponse = await client.send(
+          new UpdateItemCommand({
+            TableName: DYNAMODB_TABLE_USERS,
+            Key: {
+              user_id: { S: userId },
+            },
+            UpdateExpression: isAcceptee
+              ? `SET habits = list_append(habits, :habit) REMOVE habits_requests[${index}]`
+              : `SET habits = list_append(habits, :habit)`,
+            ExpressionAttributeValues: {
+              ":habit": {
+                L: [
+                  {
+                    M: {
+                      habit_id: { S: habitId },
+                      habit_type: { S: type },
+                      title: { S: title },
+                    },
+                  },
+                ],
+              },
+            },
+          }),
+        );
 
-      if (updateUsersResponse.$metadata.httpStatusCode !== 200) {
-        throw new Error(`Failed to update user ${userId}`);
-      }
-    }));
-
-    revalidateTag('habits')
+        if (updateUsersResponse.$metadata.httpStatusCode !== 200) {
+          throw new Error(`Failed to update user ${userId}`);
+        }
+      }),
+    );
 
     return NextResponse.json({ habitId }, { status: 200 });
   } catch (error) {

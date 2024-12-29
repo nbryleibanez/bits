@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { SpeedInsights } from '@vercel/speed-insights/next';
-import { ServiceWorkerRegistration } from '@/components/service-worker-registration'
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 import "@/app/globals.css";
 
 import { Toaster } from "@/components/ui/toaster";
@@ -21,10 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} w-full min-h-screen relative`}>
-        <TooltipProvider>
-          {children}
-        </TooltipProvider>
+      <body
+        className={`${inter.className} w-full min-h-dvh max-h-dvh relative`}
+      >
+        <TooltipProvider>{children}</TooltipProvider>
         <Toaster />
         <SpeedInsights />
         <ServiceWorkerRegistration />

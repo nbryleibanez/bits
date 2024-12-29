@@ -1,5 +1,10 @@
 import { type NextRequest } from "next/server";
-import { DynamoDBClient, GetItemCommand, QueryCommand, UpdateItemCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  GetItemCommand,
+  QueryCommand,
+  UpdateItemCommand,
+} from "@aws-sdk/client-dynamodb";
 
 import { verifyToken, validateAccessToken } from "@/utils/auth/tokens";
 import {
@@ -8,11 +13,11 @@ import {
   unauthorizedResponse,
   notFoundResponse,
   conflictResponse,
-  internalServerErrorResponse
+  internalServerErrorResponse,
 } from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
-const { DYNAMODB_TABLE_USERS } = process.env
+const { DYNAMODB_TABLE_USERS } = process.env;
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,26 +25,32 @@ export async function POST(request: NextRequest) {
     if (!payload) return unauthorizedResponse();
 
     const body = await request.json();
-    const idToken = request.cookies.get('id_token')?.value as string;
-    const idTokenPayload = await verifyToken(idToken, "id")
+    const idToken = request.cookies.get("id_token")?.value as string;
+    const idTokenPayload = await verifyToken(idToken, "id");
     if (!idTokenPayload) return unauthorizedResponse();
 
-    if (body.username === idTokenPayload['custom:username'])
-      return badRequestResponse("You cannot send a friend request to yourself.")
+    if (body.username === idTokenPayload["custom:username"])
+      return badRequestResponse(
+        "You cannot send a friend request to yourself.",
+      );
 
     const getSenderResponse = await client.send(
       new GetItemCommand({
         TableName: DYNAMODB_TABLE_USERS,
         Key: { user_id: { S: payload.sub } },
-      })
+      }),
+    );
+    if (
+      getSenderResponse.$metadata.httpStatusCode !== 200 ||
+      !getSenderResponse.Item
     )
-    if (getSenderResponse.$metadata.httpStatusCode !== 200 || !getSenderResponse.Item)
       return internalServerErrorResponse();
 
-    const isFriend = getSenderResponse.Item?.friends?.L?.some((f) =>
-      f.M?.username?.S === body.username
+    const isFriend = getSenderResponse.Item?.friends?.L?.some(
+      (f) => f.M?.username?.S === body.username,
     );
-    if (isFriend) return conflictResponse("You are already friends with this user.");
+    if (isFriend)
+      return conflictResponse("You are already friends with this user.");
 
     // Check if user exists
     const checkTargetExistsResponse = await client.send(
@@ -50,25 +61,37 @@ export async function POST(request: NextRequest) {
         ExpressionAttributeValues: {
           ":username": { S: body.username },
         },
-      })
-    )
+        Limit: 1,
+      }),
+    );
 
-    if (checkTargetExistsResponse.$metadata.httpStatusCode !== 200 || !checkTargetExistsResponse.Items) return internalServerErrorResponse();
+    if (
+      checkTargetExistsResponse.$metadata.httpStatusCode !== 200 ||
+      !checkTargetExistsResponse.Items
+    )
+      return internalServerErrorResponse();
     if (checkTargetExistsResponse.Count === 0) return notFoundResponse();
 
-    const hasPendingRequest = checkTargetExistsResponse.Items[0].friend_requests.L?.some((r) =>
-      r.M?.user_id.S === payload.sub
-    );
-    if (hasPendingRequest) return conflictResponse("You have already sent a friend request to this user.");
+    const hasPendingRequest =
+      checkTargetExistsResponse.Items[0].friend_requests.L?.some(
+        (r) => r.M?.user_id.S === payload.sub,
+      );
+    if (hasPendingRequest)
+      return conflictResponse(
+        "You have already sent a friend request to this user.",
+      );
 
     // Add friend request
     const addFriendRequestResponse = await client.send(
       new UpdateItemCommand({
         TableName: DYNAMODB_TABLE_USERS,
         Key: {
-          user_id: { S: checkTargetExistsResponse.Items[0].user_id.S as string },
+          user_id: {
+            S: checkTargetExistsResponse.Items[0].user_id.S as string,
+          },
         },
-        UpdateExpression: "SET friend_requests = list_append(friend_requests, :newFriendRequest)",
+        UpdateExpression:
+          "SET friend_requests = list_append(friend_requests, :newFriendRequest)",
         ExpressionAttributeValues: {
           ":newFriendRequest": {
             L: [
@@ -76,8 +99,12 @@ export async function POST(request: NextRequest) {
                 M: {
                   user_id: { S: payload.sub },
                   username: { S: getSenderResponse.Item.username.S as string },
-                  full_name: { S: getSenderResponse.Item.full_name.S as string },
-                  avatar_url: { S: getSenderResponse.Item.avatar_url.S as string },
+                  full_name: {
+                    S: getSenderResponse.Item.full_name.S as string,
+                  },
+                  avatar_url: {
+                    S: getSenderResponse.Item.avatar_url.S as string,
+                  },
                   created_date: { S: new Date().toISOString() },
                 },
               },
@@ -85,10 +112,11 @@ export async function POST(request: NextRequest) {
           },
         },
         ReturnValues: "NONE",
-      })
-    )
+      }),
+    );
 
-    if (addFriendRequestResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+    if (addFriendRequestResponse.$metadata.httpStatusCode !== 200)
+      return internalServerErrorResponse();
 
     return okResponse();
   } catch (error) {

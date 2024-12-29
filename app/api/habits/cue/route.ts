@@ -1,16 +1,19 @@
-import { type NextRequest } from 'next/server'
-import { revalidateTag } from 'next/cache';
-import { DynamoDBClient, PutItemCommand, UpdateItemCommand, } from "@aws-sdk/client-dynamodb";
-import { ulid } from "ulid"
+import { type NextRequest } from "next/server";
+import {
+  DynamoDBClient,
+  PutItemCommand,
+  UpdateItemCommand,
+} from "@aws-sdk/client-dynamodb";
+import { ulid } from "ulid";
 
-import { habitSchema } from "@/lib/schema"
-import { verifyToken, validateAccessToken } from "@/utils/auth/tokens"
+import { habitSchema } from "@/lib/schema";
+import { verifyToken, validateAccessToken } from "@/utils/auth/tokens";
 import {
   createdResponse,
   badRequestResponse,
   unauthorizedResponse,
-  internalServerErrorResponse
-} from "@/utils/http/responses"
+  internalServerErrorResponse,
+} from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_HABITS, DYNAMODB_TABLE_USERS } = process.env;
@@ -20,11 +23,12 @@ export async function POST(request: NextRequest) {
     const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
-    const { title, cue, type } = await request.json()
-    if (!title || !cue || !type) return badRequestResponse("Missing required fields");
+    const { title, cue, type } = await request.json();
+    if (!title || !cue || !type)
+      return badRequestResponse("Missing required fields");
 
-    const habitId = ulid()
-    const dateNow = new Date().toISOString()
+    const habitId = ulid();
+    const dateNow = new Date().toISOString();
     const idToken = request.cookies.get("id_token")?.value as string;
     const idTokenPayload = await verifyToken(idToken, "id");
 
@@ -36,15 +40,17 @@ export async function POST(request: NextRequest) {
       cue: cue,
       streak: 0,
       created_date: dateNow,
-      participants: [{
-        user_id: payload.sub,
-        username: idTokenPayload?.["custom:username"] as string,
-        full_name: idTokenPayload?.name as string,
-        avatar_url: idTokenPayload?.picture as string,
-        role: 'owner',
-        is_logged: false,
-      }],
-    })
+      participants: [
+        {
+          user_id: payload.sub,
+          username: idTokenPayload?.["custom:username"] as string,
+          full_name: idTokenPayload?.name as string,
+          avatar_url: idTokenPayload?.picture as string,
+          role: "owner",
+          is_logged: false,
+        },
+      ],
+    });
 
     if (!success) return badRequestResponse();
 
@@ -60,21 +66,22 @@ export async function POST(request: NextRequest) {
           streak: { N: data.streak.toString() },
           created_date: { S: data.created_date },
           participants: {
-            L: data.participants.map(participant => ({
+            L: data.participants.map((participant) => ({
               M: {
                 user_id: { S: participant.user_id },
                 full_name: { S: participant.full_name },
                 avatar_url: { S: participant.avatar_url },
                 role: { S: participant.role },
                 is_logged: { BOOL: participant.is_logged },
-              }
+              },
             })),
           },
-        }
-      })
-    )
+        },
+      }),
+    );
 
-    if (putItemResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+    if (putItemResponse.$metadata.httpStatusCode !== 200)
+      return internalServerErrorResponse();
 
     const updateItemResponse = await client.send(
       new UpdateItemCommand({
@@ -90,21 +97,19 @@ export async function POST(request: NextRequest) {
                 M: {
                   habit_id: { S: habitId },
                   habit_type: { S: type },
-                }
-              }
-            ]
+                },
+              },
+            ],
           },
-        }
-      })
-    )
+        },
+      }),
+    );
 
-    if (updateItemResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
-
-    revalidateTag('habits')
-
-    return createdResponse({ habitId, habitType: type })
+    if (updateItemResponse.$metadata.httpStatusCode !== 200)
+      return internalServerErrorResponse();
+    return createdResponse({ habitId, habitType: type });
   } catch (error) {
-    console.error('Error in POST handler:', error)
+    console.error("Error in POST handler:", error);
     return internalServerErrorResponse();
   }
 }

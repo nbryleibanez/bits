@@ -1,8 +1,16 @@
 import { NextRequest } from "next/server";
-import { DynamoDBClient, GetItemCommand, BatchGetItemCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBClient,
+  GetItemCommand,
+  BatchGetItemCommand,
+} from "@aws-sdk/client-dynamodb";
 
 import { validateAccessToken } from "@/utils/auth/tokens";
-import { okResponse, unauthorizedResponse, internalServerErrorResponse } from "@/utils/http/responses";
+import {
+  okResponse,
+  unauthorizedResponse,
+  internalServerErrorResponse,
+} from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_USERS, DYNAMODB_TABLE_HABITS } = process.env;
@@ -15,35 +23,42 @@ export async function GET(request: NextRequest) {
     const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
+    const id = request.nextUrl.searchParams.get("id") as string;
+    const user_id = id ? id : payload.sub;
+
     const getUserResponse = await client.send(
       new GetItemCommand({
         TableName: DYNAMODB_TABLE_USERS,
         Key: {
-          user_id: { S: payload.sub },
+          user_id: { S: user_id },
         },
-        ProjectionExpression: "habits"
-      })
+        ProjectionExpression: "habits",
+      }),
     );
 
     if (
       getUserResponse.$metadata.httpStatusCode !== 200 ||
       !getUserResponse.Item
-    ) return internalServerErrorResponse();
+    )
+      return internalServerErrorResponse();
 
     const habits = getUserResponse.Item.habits.L || [];
 
-    // Use a Set to ensure unique keys
     const uniqueKeys = new Set(
-      habits.map((habit) => `${habit.M?.habit_id.S}#${habit.M?.habit_type.S}`)
+      habits.map((habit) => `${habit.M?.habit_id.S}#${habit.M?.habit_type.S}`),
     );
 
     const keysArray = Array.from(uniqueKeys).map((key) => {
-      const [habit_id, habit_type] = key.split('#');
+      const [habit_id, habit_type] = key.split("#");
       return {
         habit_id: { S: habit_id },
         habit_type: { S: habit_type },
       };
     });
+
+    if (keysArray.length === 0) {
+      return okResponse([]); // Return an empty array if there are no habits
+    }
 
     const getHabitsResponse = await client.send(
       new BatchGetItemCommand({
@@ -52,12 +67,14 @@ export async function GET(request: NextRequest) {
             Keys: keysArray,
           },
         },
-      })
+      }),
     );
 
-    if (getHabitsResponse.$metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+    if (getHabitsResponse.$metadata.httpStatusCode !== 200)
+      return internalServerErrorResponse();
 
-    const results = getHabitsResponse.Responses?.[`${DYNAMODB_TABLE_HABITS}`] || [];
+    const results =
+      getHabitsResponse.Responses?.[`${DYNAMODB_TABLE_HABITS}`] || [];
 
     return okResponse(results);
   } catch (error) {

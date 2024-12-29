@@ -2,7 +2,7 @@ import { type NextRequest } from "next/server";
 import {
   DynamoDBClient,
   GetItemCommand,
-  UpdateItemCommand
+  UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { ulid } from "ulid";
 
@@ -11,11 +11,11 @@ import {
   okResponse,
   badRequestResponse,
   unauthorizedResponse,
-  internalServerErrorResponse
+  internalServerErrorResponse,
 } from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
-const { DYNAMODB_TABLE_USERS } = process.env
+const { DYNAMODB_TABLE_USERS } = process.env;
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,7 +32,8 @@ export async function POST(request: NextRequest) {
       new UpdateItemCommand({
         TableName: DYNAMODB_TABLE_USERS,
         Key: { user_id: { S: duoId } },
-        UpdateExpression: "SET habits_requests = list_append(habits_requests, :newHabitRequest)",
+        UpdateExpression:
+          "SET habits_requests = list_append(habits_requests, :newHabitRequest)",
         ExpressionAttributeValues: {
           ":newHabitRequest": {
             L: [
@@ -43,15 +44,18 @@ export async function POST(request: NextRequest) {
                   title: { S: title },
                   duo_id: { S: payload.sub },
                   duo_name: { S: idTokenPayload.name as string },
+                  duo_username: {
+                    S: idTokenPayload["custom:username"] as string,
+                  },
                   duo_avatar_url: { S: idTokenPayload.picture as string },
-                }
-              }
-            ]
+                },
+              },
+            ],
           },
         },
         ReturnValues: "NONE",
-      })
-    )
+      }),
+    );
 
     if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
 

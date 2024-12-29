@@ -1,10 +1,11 @@
-"use client"
+"use client";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { revalidateHabits, revalidateUser } from "@/app/actions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,10 +25,16 @@ const FormSchema = z.object({
   cue: z.string().min(1, { message: "Cue is required" }),
 });
 
-export default function CueHabitForm() {
+export default function CueHabitForm({
+  userId,
+  username,
+}: {
+  userId: string;
+  username: string;
+}) {
   const router = useRouter();
-  const { toast } = useToast()
-  const [loading, setLoading] = useState(false)
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -41,8 +48,8 @@ export default function CueHabitForm() {
     const input = {
       title: form.getValues().title,
       cue: form.getValues().cue,
-      type: "cue"
-    }
+      type: "cue",
+    };
 
     const res = await fetch(`${window.location.origin}/api/habits/cue`, {
       method: "POST",
@@ -53,24 +60,19 @@ export default function CueHabitForm() {
     });
 
     if (!res.ok) {
-      const error = await res.json()
+      const error = await res.json();
 
       return toast({
         variant: "destructive",
         title: error.error,
         description: "We're fixing this, Houston.",
-      })
+      });
     }
 
-    toast({
-      title: "Success",
-      description: "Habit successfully created.",
-    })
-
-    const { habitId, habitType } = await res.json()
-
-    router.push(`/habit/${habitId}?type=${habitType}`)
-    router.refresh()
+    await revalidateUser(username);
+    await revalidateHabits(userId);
+    const { habitId, habitType } = await res.json();
+    router.push(`/habit/${habitId}?type=${habitType}`);
   };
 
   return (
@@ -82,8 +84,7 @@ export default function CueHabitForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Habit Title</FormLabel>
-              <FormControl>
-              </FormControl>
+              <FormControl></FormControl>
               <Input {...field} />
               <FormMessage />
             </FormItem>
@@ -95,17 +96,21 @@ export default function CueHabitForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Cue</FormLabel>
-              <FormControl>
-              </FormControl>
+              <FormControl></FormControl>
               <Input {...field} />
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button onClick={() => setLoading(false)} disabled={loading} className="w-full" type="submit">
+        <Button
+          onClick={() => setLoading(false)}
+          disabled={loading}
+          className="w-full"
+          type="submit"
+        >
           {loading ? <LoadingSpinner /> : "Submit"}
         </Button>
       </form>
     </Form>
-  )
+  );
 }
