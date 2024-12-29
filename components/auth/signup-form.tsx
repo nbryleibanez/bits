@@ -27,7 +27,7 @@ const FormSchema = z.object({
 
 export default function SignUpForm() {
   const router = useRouter();
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -39,8 +39,6 @@ export default function SignUpForm() {
   });
 
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
-    console.log("values", values);
-
     const res = await fetch(`${window.location.origin}/api/auth/signup`, {
       method: "POST",
       headers: {
@@ -54,17 +52,17 @@ export default function SignUpForm() {
         variant: "destructive",
         title: "Something went wrong.",
         description: "We're fixing this, Houston.",
-      })
+      });
     } else {
       toast({
         title: "Success",
         description: "We've sent you an email to verify your account.",
-      })
+      });
 
       let searchParams = new URLSearchParams();
       searchParams.set("email", values.email);
 
-      router.push(`/verify?${searchParams}`)
+      router.push(`/verify?${searchParams}`);
     }
   };
 
@@ -110,7 +108,9 @@ export default function SignUpForm() {
             </FormItem>
           )}
         />
-        <Button className="w-full" type="submit">Submit</Button>
+        <Button className="w-full" type="submit">
+          Submit
+        </Button>
       </form>
     </Form>
   );
