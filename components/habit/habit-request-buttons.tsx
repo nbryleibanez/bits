@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { revalidateHabits, revalidateUser } from "@/app/actions";
+
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { CheckIcon, Cross2Icon } from "@radix-ui/react-icons";
@@ -15,6 +17,8 @@ export default function HabitRequestButtons({
   ownerUsername,
   ownerFullName,
   ownerAvatarUrl,
+  myId,
+  myUsername,
 }: any) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -39,7 +43,6 @@ export default function HabitRequestButtons({
     });
 
     setLoading(false);
-    router.refresh();
 
     if (!res.ok) {
       return toast({
@@ -53,6 +56,12 @@ export default function HabitRequestButtons({
       title: "Friend request accepted",
       description: "You are now friends with this user",
     });
+
+    await revalidateUser(ownerUsername);
+    await revalidateUser(myUsername);
+    await revalidateHabits(ownerId);
+    await revalidateHabits(myId);
+
     router.push(`/habit/${habitId}`);
   };
 
@@ -67,7 +76,6 @@ export default function HabitRequestButtons({
     });
 
     setLoading(false);
-    router.refresh();
     if (!res.ok) {
       return toast({
         variant: "destructive",
@@ -75,6 +83,9 @@ export default function HabitRequestButtons({
         description: "We're fixing it, Houston.",
       });
     }
+
+    await revalidateUser(ownerUsername);
+    await revalidateUser(myUsername);
   };
 
   return (

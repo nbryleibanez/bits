@@ -1,7 +1,12 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import HabitRequestButtons from "@/components/habit/habit-request-buttons";
 
-export default function HabitRequestCard({ habitRequest, index }: any) {
+export default function HabitRequestCard({
+  habitRequest,
+  index,
+  myId,
+  myUsername,
+}: any) {
   return (
     <div className="aspect-square p-4 flex flex-col justify-between bg-white rounded-3xl shadow-md">
       <div className="w-full flex justify-between">
@@ -20,6 +25,8 @@ export default function HabitRequestCard({ habitRequest, index }: any) {
         ownerUsername={habitRequest.duo_username.S}
         ownerFullName={habitRequest.duo_name.S}
         ownerAvatarUrl={habitRequest.duo_avatar_url.S}
+        myId={myId}
+        myUsername={myUsername}
       />
     </div>
   );

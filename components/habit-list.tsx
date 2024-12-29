@@ -29,6 +29,8 @@ export default async function HabitList() {
           key={habitRequest.M.habit_id.S}
           habitRequest={habitRequest.M}
           index={index}
+          myId={idTokenPayload?.sub as string}
+          myUsername={idTokenPayload?.["custom:username"] as string}
         />
       ))}
       <Link
