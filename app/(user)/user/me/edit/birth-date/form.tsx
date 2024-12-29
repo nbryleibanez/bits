@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { revalidateMe } from "@/app/actions";
+import { revalidateUser } from "@/app/actions";
 import { cn } from "@/lib/utils";
 import { format, startOfDay } from "date-fns";
 
@@ -36,7 +36,13 @@ const FormSchema = z.object({
     .transform((date) => startOfDay(date)),
 });
 
-export default function EditBirthDateForm({ birthDate }: { birthDate: Date }) {
+export default function EditBirthDateForm({
+  birthDate,
+  username,
+}: {
+  birthDate: Date;
+  username: string;
+}) {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -85,9 +91,8 @@ export default function EditBirthDateForm({ birthDate }: { birthDate: Date }) {
         return;
       }
 
-      await revalidateMe();
+      await revalidateUser(username);
       router.push("/user/me");
-      router.refresh();
     } catch (error) {
       toast({
         variant: "destructive",

@@ -25,6 +25,8 @@ export default async function HabitDetailsCard({
     (await cookies()).get("id_token")?.value as string,
     "id",
   );
+  const userId = idTokenPayload?.sub as string;
+  const username = idTokenPayload?.["custom:username"] as string;
   const participant = data.participants.L.find(
     (p: any) => p.M.user_id.S === idTokenPayload?.sub,
   );
@@ -75,7 +77,12 @@ export default async function HabitDetailsCard({
           </div>
         </CardContent>
       </Card>
-      <ActionButtons owner={data.owner.S} isLogged={isLogged} />
+      <ActionButtons
+        userId={userId}
+        username={username}
+        owner={data.owner.S}
+        isLogged={isLogged}
+      />
     </>
   );
 }

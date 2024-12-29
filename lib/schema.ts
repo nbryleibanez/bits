@@ -24,6 +24,7 @@ export const userSchema = z.object({
       habit_type: z.enum(["basic", "cue", "duo"]),
       title: z.string(),
       duo_id: z.string().uuid(),
+      duo_username: z.string(),
       duo_name: z.string(),
       duo_avatar_url: z.string().url(),
     }),

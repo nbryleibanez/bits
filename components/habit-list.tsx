@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
-import { getHabits, getHabitRequestsByUserId } from "@/lib/fetch";
+import { verifyToken } from "@/utils/auth/tokens";
+import { getHabitsByUserId, getHabitRequestsByUserId } from "@/lib/fetch";
 
 import HabitCard from "@/components/habit-card";
 import HabitRequestCard from "@/components/habit/habit-request-card";
@@ -8,7 +9,14 @@ import { PlusIcon } from "@radix-ui/react-icons";
 
 export default async function HabitList() {
   const cookieStore = await cookies();
-  const habits = await getHabits(cookieStore);
+  const idTokenPayload = await verifyToken(
+    cookieStore.get("id_token")?.value as string,
+    "id",
+  );
+  const habits = await getHabitsByUserId(
+    cookieStore,
+    idTokenPayload?.sub as string,
+  );
   const habitRequests = await getHabitRequestsByUserId(cookieStore);
 
   return (

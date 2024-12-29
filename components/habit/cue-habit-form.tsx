@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { revalidateHabits, revalidateMe } from "@/app/actions";
+import { revalidateHabits, revalidateUser } from "@/app/actions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +25,13 @@ const FormSchema = z.object({
   cue: z.string().min(1, { message: "Cue is required" }),
 });
 
-export default function CueHabitForm() {
+export default function CueHabitForm({
+  userId,
+  username,
+}: {
+  userId: string;
+  username: string;
+}) {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -63,16 +69,10 @@ export default function CueHabitForm() {
       });
     }
 
-    toast({
-      title: "Success",
-      description: "Habit successfully created.",
-    });
-
-    await revalidateMe();
-    await revalidateHabits();
+    await revalidateUser(username);
+    await revalidateHabits(userId);
     const { habitId, habitType } = await res.json();
     router.push(`/habit/${habitId}?type=${habitType}`);
-    router.refresh();
   };
 
   return (

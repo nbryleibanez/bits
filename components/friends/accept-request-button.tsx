@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { revalidateMe, revalidateUser } from "@/app/actions";
+import { revalidateUser } from "@/app/actions";
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -57,7 +57,7 @@ export default function AcceptRequestButton({
 
       if (!res.ok) throw new Error();
 
-      await revalidateMe();
+      await revalidateUser(sourceUsername);
       await revalidateUser(targetUsername);
       setIsLoading(false);
     } catch (error) {

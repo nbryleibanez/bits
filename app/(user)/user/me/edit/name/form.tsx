@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { revalidateMe } from "@/app/actions";
+import { revalidateUser } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
@@ -27,9 +27,11 @@ const FormSchema = z.object({
 export default function EditNameForm({
   firstName,
   lastName,
+  username,
 }: {
   firstName: string;
   lastName: string;
+  username: string;
 }) {
   const router = useRouter();
   const { toast } = useToast();
@@ -82,9 +84,8 @@ export default function EditNameForm({
         return;
       }
 
-      await revalidateMe();
+      await revalidateUser(username);
       router.push("/user/me");
-      router.refresh();
     } catch (error) {
       toast({
         variant: "destructive",

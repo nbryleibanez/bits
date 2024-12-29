@@ -1,12 +1,18 @@
 "use client";
 
-import { useRouter, useParams, useSearchParams } from "next/navigation";
-import { revalidateHabit, revalidateHabits, revalidateMe } from "@/app/actions";
+import { useParams, useSearchParams } from "next/navigation";
+import {
+  revalidateHabit,
+  revalidateHabits,
+  revalidateUser,
+} from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/components/ui/use-toast";
 
 interface Props {
+  userId: string;
+  username: string;
   isLogged: boolean;
   isLoading: boolean;
   isOtherActionRunning: boolean;
@@ -14,13 +20,14 @@ interface Props {
 }
 
 export default function LogHabitButton({
+  userId,
+  username,
   isLogged,
   isLoading,
   isOtherActionRunning,
   onAction,
 }: Props) {
   const params = useParams();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const type = searchParams.get("type");
@@ -43,10 +50,9 @@ export default function LogHabitButton({
           throw new Error("Failed to log habit");
         }
 
-        await revalidateHabits();
-        await revalidateMe();
+        await revalidateHabits(userId);
+        await revalidateUser(username);
         await revalidateHabit(params.id as string);
-        // router.refresh();
       } catch (error) {
         toast({
           variant: "destructive",

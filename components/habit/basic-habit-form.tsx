@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { revalidateHabits, revalidateMe } from "@/app/actions";
+import { revalidateHabits, revalidateUser } from "@/app/actions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,13 @@ const FormSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
 });
 
-export default function BasicHabitForm() {
+export default function BasicHabitForm({
+  userId,
+  username,
+}: {
+  userId: string;
+  username: string;
+}) {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -36,7 +42,7 @@ export default function BasicHabitForm() {
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof FormSchema>) => {
+  const onSubmit = async () => {
     setLoading(true);
 
     const input = {
@@ -62,11 +68,10 @@ export default function BasicHabitForm() {
       });
     }
 
-    await revalidateMe();
-    await revalidateHabits();
+    await revalidateUser(username);
+    await revalidateHabits(userId);
     const { habitId, habitType } = await res.json();
     router.push(`/habit/${habitId}?type=${habitType}`);
-    router.refresh();
   };
 
   return (
@@ -90,7 +95,7 @@ export default function BasicHabitForm() {
         <Button
           onClick={() => setLoading(false)}
           disabled={loading}
-          className="w-full h-12"
+          className="w-full h-12 rounded-xl"
           type="submit"
         >
           {loading ? <LoadingSpinner /> : "Submit"}

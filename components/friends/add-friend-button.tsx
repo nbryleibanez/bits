@@ -1,18 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { revalidateMe, revalidateUser } from "@/app/actions";
+import { revalidateUser } from "@/app/actions";
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 export default function AddFriendButton({
+  sourceUsername,
+  targetUsername,
   isSentRequest,
-  username,
 }: {
+  sourceUsername: string;
+  targetUsername: string;
   isSentRequest: boolean;
-  username: string;
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -26,13 +28,13 @@ export default function AddFriendButton({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ username }),
+        body: JSON.stringify({ targetUsername }),
       });
 
       if (!res.ok) throw new Error();
 
-      await revalidateMe();
-      await revalidateUser(username);
+      await revalidateUser(sourceUsername);
+      await revalidateUser(targetUsername);
       setIsLoading(false);
     } catch (error) {
       toast({

@@ -1,7 +1,11 @@
 "use client";
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { revalidateMe, revalidateHabits, revalidateHabit } from "@/app/actions";
+import {
+  revalidateHabits,
+  revalidateHabit,
+  revalidateUser,
+} from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -18,6 +22,8 @@ import {
 } from "@/components/ui/alert-dialog";
 
 interface Props {
+  userId: string;
+  username: string;
   owner: string;
   isLoading: boolean;
   isOtherActionRunning: boolean;
@@ -25,6 +31,8 @@ interface Props {
 }
 
 export default function DeleteHabitButton({
+  userId,
+  username,
   owner,
   isLoading,
   isOtherActionRunning,
@@ -52,8 +60,8 @@ export default function DeleteHabitButton({
         if (!res.ok) {
           throw new Error("Failed to delete habit");
         }
-        await revalidateMe();
-        await revalidateHabits();
+        await revalidateUser(username);
+        await revalidateHabits(userId);
         await revalidateHabit(params.id as string);
         router.push("/");
         router.refresh();

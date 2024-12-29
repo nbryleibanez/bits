@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { revalidateMe } from "@/app/actions";
+import { revalidateUser } from "@/app/actions";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import {
@@ -31,7 +30,13 @@ const FormSchema = z.object({
   sex: z.string().min(1, { message: "Sex is required" }),
 });
 
-export default function EditSexForm({ sex }: { sex: string }) {
+export default function EditSexForm({
+  sex,
+  username,
+}: {
+  sex: string;
+  username: string;
+}) {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -80,9 +85,8 @@ export default function EditSexForm({ sex }: { sex: string }) {
         return;
       }
 
-      await revalidateMe();
+      await revalidateUser(username);
       router.push("/user/me");
-      router.refresh();
     } catch (error) {
       toast({
         variant: "destructive",

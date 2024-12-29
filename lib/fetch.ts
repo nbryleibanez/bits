@@ -1,3 +1,5 @@
+import { verifyToken } from "@/utils/auth/tokens";
+
 export async function getHabit(cookies: any, id: string, type: string) {
   const response = await fetch(
     `${process.env.SITE}/api/habits/${id}?type=${type}`,
@@ -18,22 +20,22 @@ export async function getHabit(cookies: any, id: string, type: string) {
   return response;
 }
 
-export async function getHabits(cookies: any) {
-  const { data } = await fetch(`${process.env.SITE}/api/habits`, {
-    method: "GET",
-    cache: "force-cache",
-    headers: {
-      Cookie: cookies.toString(),
-      "Content-Type": "application/json",
-    },
-    next: {
-      tags: ["habits"],
-      revalidate: 1800,
-    },
-  }).then((res) => res.json());
-
-  return data;
-}
+// export async function getHabits(cookies: any) {
+//   const { data } = await fetch(`${process.env.SITE}/api/habits`, {
+//     method: "GET",
+//     cache: "force-cache",
+//     headers: {
+//       Cookie: cookies.toString(),
+//       "Content-Type": "application/json",
+//     },
+//     next: {
+//       tags: ["habits"],
+//       revalidate: 1800,
+//     },
+//   }).then((res) => res.json());
+//
+//   return data;
+// }
 
 export async function getHabitsByUserId(cookies: any, id: string) {
   const { data } = await fetch(`${process.env.SITE}/api/habits?id=${id}`, {
@@ -44,7 +46,7 @@ export async function getHabitsByUserId(cookies: any, id: string) {
       "Content-Type": "application/json",
     },
     next: {
-      tags: [`/user/${id}/habits`],
+      tags: [`user/${id}/habits`],
       revalidate: 1800,
     },
   }).then((res) => res.json());
@@ -69,6 +71,10 @@ export async function getHabitRequestsByUserId(cookies: any) {
 // --------------------------------------------USER-----------------------------------------------
 
 export async function getUserMe(cookies: any) {
+  const idToken = cookies.get("id_token").value;
+  const idTokenPayload = await verifyToken(idToken, "id");
+  const username = idTokenPayload?.["custom:username"];
+
   const { data } = await fetch(`${process.env.SITE}/api/users/me`, {
     method: "GET",
     cache: "force-cache",
@@ -76,7 +82,7 @@ export async function getUserMe(cookies: any) {
       Cookie: cookies.toString(),
       "Content-Type": "application/json",
     },
-    next: { tags: ["user/me"] },
+    next: { tags: [`user/${username}`] },
   }).then((res) => res.json());
 
   return data;
@@ -97,7 +103,6 @@ export async function getUserByUsername(cookies: any, username: string) {
   );
 
   if (res.status === 404) return null;
-
   const { data } = await res.json();
 
   return data;

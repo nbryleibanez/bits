@@ -9,7 +9,7 @@ import { ArrowLeft } from "lucide-react";
 
 export default async function Page() {
   const cookieStore = await cookies();
-  const { first_name, last_name } = await getUserMe(cookieStore);
+  const { first_name, last_name, username } = await getUserMe(cookieStore);
 
   return (
     <main className="flex flex-col gap-8 sm:gap-4 min-h-screen items-center sm:justify-center p-5">
@@ -24,7 +24,11 @@ export default async function Page() {
         <div>
           <h1 className="text-xl font-semibold">Edit Name</h1>
         </div>
-        <EditNameForm firstName={first_name.S} lastName={last_name.S} />
+        <EditNameForm
+          firstName={first_name.S}
+          lastName={last_name.S}
+          username={username.S}
+        />
       </div>
 
       {/* Desktop view (sm breakpoint and above) */}
@@ -35,7 +39,11 @@ export default async function Page() {
           </div>
         </CardHeader>
         <CardContent>
-          <EditNameForm firstName={first_name.S} lastName={last_name.S} />
+          <EditNameForm
+            firstName={first_name.S}
+            lastName={last_name.S}
+            username={username.S}
+          />
         </CardContent>
       </Card>
     </main>

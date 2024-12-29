@@ -9,7 +9,7 @@ import { ArrowLeft } from "lucide-react";
 
 export default async function Page() {
   const cookieStore = await cookies();
-  const { sex } = await getUserMe(cookieStore);
+  const { sex, username } = await getUserMe(cookieStore);
 
   return (
     <main className="flex flex-col gap-8 sm:gap-4 min-h-screen items-center sm:justify-center p-5">
@@ -24,7 +24,7 @@ export default async function Page() {
         <div>
           <h1 className="text-xl font-semibold">Edit Sex</h1>
         </div>
-        <EditSexForm sex={sex.S} />
+        <EditSexForm sex={sex.S} username={username.S} />
       </div>
 
       {/* Desktop view (sm breakpoint and above) */}
@@ -35,7 +35,7 @@ export default async function Page() {
           </div>
         </CardHeader>
         <CardContent>
-          <EditSexForm sex={sex.S} />
+          <EditSexForm sex={sex.S} username={username.S} />
         </CardContent>
       </Card>
     </main>

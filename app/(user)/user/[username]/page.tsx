@@ -68,6 +68,7 @@ export default async function Page(props: {
       {isFriend ? (
         <UnfriendButton
           sourceUserId={me.user_id.S as string}
+          sourceUsername={me.username.S as string}
           targetUserId={user.user_id.S as string}
           targetUsername={user.username.S as string}
         />
@@ -86,7 +87,8 @@ export default async function Page(props: {
       ) : (
         <AddFriendButton
           isSentRequest={isSentRequest}
-          username={user.username.S}
+          sourceUsername={me.username.S as string}
+          targetUsername={user.username.S as string}
         />
       )}
     </main>

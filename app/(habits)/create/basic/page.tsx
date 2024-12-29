@@ -1,10 +1,15 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { getUserMe } from "@/lib/fetch";
 import BasicHabitForm from "@/components/habit/basic-habit-form";
 
 import { CardHeader, CardContent, Card } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
 
-export default function Page() {
+export default async function Page() {
+  const cookieStore = await cookies();
+  const { user_id, username } = await getUserMe(cookieStore);
+
   return (
     <main className="flex flex-col min-h-screen items-center sm:justify-center p-5 gap-4">
       <div className="w-full max-w-md">
@@ -19,7 +24,7 @@ export default function Page() {
           <h1 className="text-xl font-semibold">Create Basic Habit</h1>
           <p className="mt-2 text-gray-600">Remember: Make it easy.</p>
         </div>
-        <BasicHabitForm />
+        <BasicHabitForm userId={user_id.S} username={username.S} />
       </div>
 
       {/* Desktop view (sm breakpoint and above) */}
@@ -31,7 +36,7 @@ export default function Page() {
           </div>
         </CardHeader>
         <CardContent>
-          <BasicHabitForm />
+          <BasicHabitForm userId={user_id.S} username={username.S} />
         </CardContent>
       </Card>
     </main>
