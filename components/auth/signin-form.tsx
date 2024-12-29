@@ -30,7 +30,7 @@ const FormSchema = z.object({
 export default function SignInForm() {
   const status = useFormStatus();
   const router = useRouter();
-  const { toast } = useToast()
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -48,21 +48,20 @@ export default function SignInForm() {
       },
       body: JSON.stringify(values),
     });
-    console.log(res)
 
     if (!res.ok) {
       toast({
         variant: "destructive",
         title: "Something went wrong.",
         description: "We're fixing this, Houston.",
-      })
+      });
     } else {
       toast({
         title: "Success",
         description: "You've signed in!",
-      })
+      });
 
-      router.push(`/`)
+      router.push(`/`);
     }
   };
 
@@ -95,9 +94,10 @@ export default function SignInForm() {
             </FormItem>
           )}
         />
-        <Button disabled={status.pending} className="w-full" type="submit">Submit</Button>
+        <Button disabled={status.pending} className="w-full" type="submit">
+          Submit
+        </Button>
       </form>
     </Form>
   );
 }
-

@@ -28,7 +28,7 @@ export default function AddFriendButton({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ targetUsername }),
+        body: JSON.stringify({ username: targetUsername }),
       });
 
       if (!res.ok) throw new Error();
