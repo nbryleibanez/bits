@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { getUserMe } from "@/lib/fetch";
-import { verifyToken } from "@/utils/auth/tokens";
 
-import AddFriendForm from "@/components/friends/add-friend-form";
+import SearchBar from "@/components/friends/search-bar";
 import FriendRequestButtons from "@/components/friends/friend-request-buttons";
 
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { CardHeader, CardContent, Card } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ChevronRight } from "lucide-react";
 
 export const metadata = {
   title: "Friends",
@@ -16,23 +15,19 @@ export const metadata = {
 
 export default async function FriendsPage() {
   const cookieStore = await cookies();
-  const payload = (await verifyToken(
-    cookieStore.get("id_token")?.value as string,
-    "id",
-  )) as unknown as string;
   const data = await getUserMe(cookieStore);
 
   return (
     <main className="min-h-screen p-5 flex flex-col items-center sm:justify-center gap-4">
-      <div className="w-full max-w-md cursor-pointer">
-        <Link href="/">
+      <div className="w-full max-w-md">
+        <Link href="/" className="cursor-pointer">
           <ArrowLeft className="w-8 h-8" />
         </Link>
       </div>
-      <AddFriendForm token={payload} />
+      <SearchBar />
       <Card className="w-full max-w-md">
         <CardHeader>
-          <h1 className="text-2xl font-bold">Friend Requests</h1>
+          <h1 className="text-xl font-semibold">Friend Requests</h1>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-2">
@@ -54,17 +49,9 @@ export default async function FriendsPage() {
                     </Avatar>
                     <p>{request.M.full_name.S}</p>
                   </div>
-                  <FriendRequestButtons
-                    sourceUserId={data.user_id.S as string}
-                    sourceUsername={data.username.S as string}
-                    sourceFullName={data.full_name.S as string}
-                    sourceAvatarUrl={data.avatar_url.S as string}
-                    targetUserId={request.M.user_id.S as string}
-                    targetUsername={request.M.username.S as string}
-                    targetFullName={request.M.full_name.S as string}
-                    targetAvatarUrl={request.M.avatar_url.S as string}
-                    index={index}
-                  />
+                  <Link href={`/user/${request.M.username.S}`}>
+                    <ChevronRight />
+                  </Link>
                 </div>
               ))
             ) : (
@@ -75,7 +62,7 @@ export default async function FriendsPage() {
       </Card>
       <Card className="w-full max-w-md">
         <CardHeader>
-          <h1 className="text-2xl font-bold">Friends</h1>
+          <h1 className="text-xl font-semibold">Friends</h1>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col gap-2">

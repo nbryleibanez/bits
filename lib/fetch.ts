@@ -59,8 +59,29 @@ export async function getUserMe(cookies: any) {
       Cookie: cookies.toString(),
       "Content-Type": "application/json",
     },
-    next: { tags: ["users/me"] },
+    next: { tags: ["user/me"] },
   }).then((res) => res.json());
+
+  return data;
+}
+
+export async function getUserByUsername(cookies: any, username: string) {
+  const res = await fetch(
+    `${process.env.SITE}/api/users/search?q=${username}`,
+    {
+      method: "GET",
+      cache: "force-cache",
+      headers: {
+        Cookie: cookies.toString(),
+        "Content-Type": "application/json",
+      },
+      next: { tags: [`user/${username}`] },
+    },
+  );
+
+  if (res.status === 404) return null;
+
+  const { data } = await res.json();
 
   return data;
 }

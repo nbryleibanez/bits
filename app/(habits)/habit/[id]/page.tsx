@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Link from "next/link";
 
 import HabitDetailsCard from "@/components/habit/habit-details-card";

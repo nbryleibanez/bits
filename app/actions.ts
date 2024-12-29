@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag, revalidatePath } from "next/cache";
+import { revalidateTag } from "next/cache";
 
 export async function revalidateHabits() {
   revalidateTag("habits");
@@ -11,5 +11,9 @@ export async function revalidateHabit(id: string) {
 }
 
 export async function revalidateMe() {
-  revalidateTag("users/me");
+  revalidateTag("user/me");
+}
+
+export async function revalidateUser(i: string) {
+  revalidateTag(`user/${i}`);
 }
