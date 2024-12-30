@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SignOutButton from "@/components/auth/signout-button";
+import InstallButton from "@/components/install-button";
 import UserDetails from "@/components/user/user-details";
 import { ArrowLeft } from "lucide-react";
 
@@ -10,6 +11,7 @@ export default function UserPage() {
         <ArrowLeft className="h-8 w-8" />
       </Link>
       <UserDetails />
+      <InstallButton />
       <SignOutButton />
     </main>
   );
