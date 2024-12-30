@@ -2,7 +2,7 @@
   "name": "Bits",
   "short_name": "Bits",
   "description": "A habit-tracker",
-  "start_url": "/signin",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
