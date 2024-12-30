@@ -1,6 +1,4 @@
 {
-  "manifest_version": 2,
-  "version": "0.0.0",
   "name": "Bits",
   "short_name": "Bits",
   "description": "A habit-tracker",
