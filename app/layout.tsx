@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { ServiceWorkerRegistration } from "@/components/service-worker-registration";
 import "@/app/globals.css";
 
 import { Toaster } from "@/components/ui/toaster";
@@ -26,8 +24,6 @@ export default function RootLayout({
       >
         <TooltipProvider>{children}</TooltipProvider>
         <Toaster />
-        <SpeedInsights />
-        <ServiceWorkerRegistration />
       </body>
     </html>
   );
