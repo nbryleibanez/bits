@@ -60,6 +60,8 @@ export default function DuoHabitForm({ data }: { data: any }) {
   };
 
   const onSubmit = async (values: z.infer<typeof FormSchema>) => {
+    setLoading(true);
+
     const input = {
       title: values.title,
       duoId: values.duo,
