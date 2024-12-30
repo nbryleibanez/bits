@@ -10,7 +10,7 @@ const pwaConfig = withPWA({
   dest: "public", // Output directory for service worker
   register: true, // Automatically register service worker
   skipWaiting: true, // Activate service worker immediately
-  scope: "/app",
+  scope: "/",
   sw: "service-worker.js",
   disable: process.env.NODE_ENV === "development", // Disable in development mode
 })(nextConfig);
