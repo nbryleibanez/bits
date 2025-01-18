@@ -1,11 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  revalidateUser,
-  revalidateHabitRequest,
-  revalidateHabitRequests,
-} from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/components/ui/use-toast";
@@ -47,11 +42,6 @@ export default function DeclineButton({
         );
 
         if (!res.ok) throw Error;
-
-        await revalidateUser(ownerUsername);
-        await revalidateUser(myUsername);
-        await revalidateHabitRequest(habitId);
-        await revalidateHabitRequests(myId);
 
         router.push("/");
       } catch (error: any) {

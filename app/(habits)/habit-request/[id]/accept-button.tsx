@@ -1,12 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import {
-  revalidateHabits,
-  revalidateUser,
-  revalidateHabitRequest,
-  revalidateHabitRequests,
-} from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/components/ui/use-toast";
@@ -66,13 +60,6 @@ export default function AcceptButton({
           title: "Habit Request Accepted",
           description: "You are now in a Duo Habit with this user.",
         });
-
-        await revalidateUser(ownerUsername);
-        await revalidateUser(myUsername);
-        await revalidateHabits(ownerId);
-        await revalidateHabits(myId);
-        await revalidateHabitRequest(habitId);
-        await revalidateHabitRequests(myId);
 
         router.push(`/habit/${habitId}?=duo`);
       } catch (error: any) {

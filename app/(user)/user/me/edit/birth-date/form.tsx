@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { revalidateUser } from "@/app/actions";
 import { cn } from "@/lib/utils";
 import { format, startOfDay } from "date-fns";
 
@@ -91,7 +90,6 @@ export default function EditBirthDateForm({
         return;
       }
 
-      await revalidateUser(username);
       router.push("/user/me");
     } catch (error) {
       toast({

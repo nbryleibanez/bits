@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { revalidateUser } from "@/app/actions";
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -9,17 +8,10 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 interface Props {
   sourceUserId: string;
-  sourceUsername: string;
   targetUserId: string;
-  targetUsername: string;
 }
 
-export default function UnfriendButton({
-  sourceUserId,
-  sourceUsername,
-  targetUserId,
-  targetUsername,
-}: Props) {
+export default function UnfriendButton({ sourceUserId, targetUserId }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -43,8 +35,6 @@ export default function UnfriendButton({
 
       if (!res.ok) throw new Error();
 
-      await revalidateUser(sourceUsername);
-      await revalidateUser(targetUsername);
       setIsLoading(false);
     } catch (error) {
       toast({

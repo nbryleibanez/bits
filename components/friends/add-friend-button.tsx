@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { revalidateUser } from "@/app/actions";
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -33,8 +32,6 @@ export default function AddFriendButton({
 
       if (!res.ok) throw new Error();
 
-      await revalidateUser(sourceUsername);
-      await revalidateUser(targetUsername);
       setIsLoading(false);
     } catch (error) {
       toast({

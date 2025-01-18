@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { revalidateHabits, revalidateUser } from "@/app/actions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -68,8 +67,6 @@ export default function BasicHabitForm({
       });
     }
 
-    await revalidateUser(username);
-    await revalidateHabits(userId);
     const { habitId, habitType } = await res.json();
     router.push(`/habit/${habitId}?type=${habitType}`);
   };

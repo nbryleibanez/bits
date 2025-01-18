@@ -1,11 +1,6 @@
 "use client";
 
 import { useRouter, useParams, useSearchParams } from "next/navigation";
-import {
-  revalidateHabit,
-  revalidateHabits,
-  revalidateUser,
-} from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useToast } from "@/components/ui/use-toast";
@@ -49,9 +44,6 @@ export default function SkipHabitButton({
         if (!res.ok) {
           throw new Error("Failed to log habit");
         }
-        await revalidateHabits(userId);
-        await revalidateUser(username);
-        await revalidateHabit(params.id as string);
         router.refresh();
       } catch (error) {
         toast({

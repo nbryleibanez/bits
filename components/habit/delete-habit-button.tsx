@@ -1,11 +1,6 @@
 "use client";
 
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import {
-  revalidateHabits,
-  revalidateHabit,
-  revalidateUser,
-} from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -60,9 +55,6 @@ export default function DeleteHabitButton({
         if (!res.ok) {
           throw new Error("Failed to delete habit");
         }
-        await revalidateUser(username);
-        await revalidateHabits(userId);
-        await revalidateHabit(params.id as string);
         router.push("/");
         router.refresh();
       } catch (error) {

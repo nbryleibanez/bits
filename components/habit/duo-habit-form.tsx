@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { revalidateUser } from "@/app/actions";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -91,8 +90,6 @@ export default function DuoHabitForm({ data }: { data: any }) {
       description: "Habit Request successfully sent.",
     });
 
-    await revalidateUser(data.username.S);
-    await revalidateUser(duoUsername);
     router.push(`/`);
   };
 
