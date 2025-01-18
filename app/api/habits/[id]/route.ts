@@ -6,6 +6,7 @@ import {
   PutItemCommand,
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
+import { CacheClient, CredentialProvider } from "@gomomento/sdk";
 
 import { validateAccessToken } from "@/utils/auth/tokens";
 import {
@@ -15,15 +16,19 @@ import {
   internalServerErrorResponse,
 } from "@/utils/http/responses";
 
-const client = new DynamoDBClient({});
 const {
   DYNAMODB_TABLE_HABITS,
   DYNAMODB_TABLE_USERS,
   DYNAMODB_TABLE_HABIT_LOGS,
 } = process.env;
+const client = new DynamoDBClient({});
+const cacheClient = await CacheClient.create({
+  credentialProvider: CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
+  defaultTtlSeconds: 3600,
+});
 
 /*
-  Get habit 
+  Get Habit 
 */
 export async function GET(
   req: NextRequest,
@@ -34,6 +39,13 @@ export async function GET(
     const payload = await validateAccessToken(req);
     if (!payload) return unauthorizedResponse();
 
+    const getCache = await cacheClient.get(
+      "staging-habits",
+      `habit:${params.id}`,
+    );
+    if (getCache.type === "Hit")
+      return okResponse(JSON.parse(getCache.valueString()));
+
     const type = req.nextUrl.searchParams.get("type") as string;
     const { $metadata, Item } = await client.send(
       new GetItemCommand({
@@ -43,6 +55,12 @@ export async function GET(
           habit_type: { S: type },
         },
       }),
+    );
+
+    await cacheClient.set(
+      "staging-habits",
+      `habit:${params.id}`,
+      JSON.stringify(Item),
     );
 
     if ($metadata.httpStatusCode !== 200 || !Item)
@@ -168,6 +186,7 @@ export async function PATCH(
     if (createLogResponse.$metadata.httpStatusCode !== 200)
       return internalServerErrorResponse();
 
+    await cacheClient.delete("staging-habits", `habit:${params.id}`);
     return NextResponse.json(
       { message: "Item updated successfully." },
       { status: 200 },
@@ -239,6 +258,8 @@ export async function DELETE(
       }),
     );
 
+    await cacheClient.delete("staging-habits", `habit:${params.id}`);
+    await cacheClient.delete("staging-habits", `user:${payload.sub}:habits`);
     return okResponse();
   } catch (error) {
     console.error("Error in DELETE handler: ", error);

@@ -2,12 +2,18 @@ import { type NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 
 import { validateAccessToken } from "@/utils/auth/tokens";
-import { unauthorizedResponse, internalServerErrorResponse } from "@/utils/http/responses";
+import {
+  unauthorizedResponse,
+  internalServerErrorResponse,
+} from "@/utils/http/responses";
 
-const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_USERS } = process.env;
+const client = new DynamoDBClient({});
 
-export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function GET(
+  request: NextRequest,
+  props: { params: Promise<{ id: string }> },
+) {
   const params = await props.params;
   try {
     const payload = await validateAccessToken(request);
@@ -19,12 +25,13 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
         Key: {
           user_id: { S: params.id },
         },
-      })
+      }),
     );
 
-    if ($metadata.httpStatusCode !== 200 || !Item) return internalServerErrorResponse();
+    if ($metadata.httpStatusCode !== 200 || !Item)
+      return internalServerErrorResponse();
 
-    return NextResponse.json({ Item }, { status: 200 })
+    return NextResponse.json({ Item }, { status: 200 });
   } catch (error: any) {
     console.error("Error in GET handler: ", error);
     return internalServerErrorResponse();

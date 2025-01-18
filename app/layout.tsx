@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "@/app/globals.css";
 
+import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -22,8 +23,9 @@ export default function RootLayout({
       <body
         className={`${inter.className} w-full min-h-dvh max-h-dvh relative`}
       >
-        <TooltipProvider>{children}</TooltipProvider>
+        <NextTopLoader color="#0f172a" showSpinner={false} />
         <Toaster />
+        <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>
   );
