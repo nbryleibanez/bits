@@ -5,6 +5,7 @@ import "@/app/globals.css";
 import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,6 +26,7 @@ export default function RootLayout({
       >
         <NextTopLoader color="#0f172a" showSpinner={false} />
         <Toaster />
+        <SpeedInsights />
         <TooltipProvider>{children}</TooltipProvider>
       </body>
     </html>
