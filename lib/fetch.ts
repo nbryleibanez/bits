@@ -1,21 +1,20 @@
 import { verifyToken } from "@/utils/auth/tokens";
 
+const { SITE } = process.env;
+
 export async function getHabit(cookies: any, id: string, type: string) {
-  const response = await fetch(
-    `${process.env.SITE}/api/habits/${id}?type=${type}`,
-    {
-      method: "GET",
-      cache: "force-cache",
-      headers: {
-        Cookie: cookies,
-        "Content-Type": "application/json",
-      },
-      next: {
-        tags: [`habit/${id}`],
-        revalidate: 1800,
-      },
+  const response = await fetch(`${SITE}/api/habits/${id}?type=${type}`, {
+    method: "GET",
+    cache: "force-cache",
+    headers: {
+      Cookie: cookies,
+      "Content-Type": "application/json",
     },
-  ).then((res) => res.json());
+    next: {
+      tags: [`habit/${id}`],
+      revalidate: 1800,
+    },
+  }).then((res) => res.json());
 
   return response;
 }
@@ -38,7 +37,7 @@ export async function getHabit(cookies: any, id: string, type: string) {
 // }
 
 export async function getHabitsByUserId(cookies: any, id: string) {
-  const { data } = await fetch(`${process.env.SITE}/api/habits?id=${id}`, {
+  const { data } = await fetch(`${SITE}/api/habits?id=${id}`, {
     method: "GET",
     cache: "force-cache",
     headers: {
@@ -54,15 +53,34 @@ export async function getHabitsByUserId(cookies: any, id: string) {
   return data;
 }
 
-export async function getHabitRequestsByUserId(cookies: any) {
-  const { data } = await fetch(`${process.env.SITE}/api/habits/requests`, {
+// --------------------------------------------HABIT REQUEST-----------------------------------------------
+
+export async function getHabitRequestById(
+  cookies: any,
+  id: string,
+): Promise<any> {
+  const { data } = await fetch(`${SITE}/api/habits/requests/${id}`, {
     method: "GET",
     cache: "force-cache",
     headers: {
       Cookie: cookies.toString(),
       "Content-Type": "application/json",
     },
-    next: { tags: ["habitRequests"] },
+    next: { tags: [`habitRequest/${id}`] },
+  }).then((res) => res.json());
+
+  return data;
+}
+
+export async function getHabitRequestsByUserId(cookies: any, id: string) {
+  const { data } = await fetch(`${SITE}/api/habits/requests?id=${id}`, {
+    method: "GET",
+    cache: "force-cache",
+    headers: {
+      Cookie: cookies.toString(),
+      "Content-Type": "application/json",
+    },
+    next: { tags: [`user/${id}/habitRequests`] },
   }).then((res) => res.json());
 
   return data;
@@ -75,7 +93,7 @@ export async function getUserMe(cookies: any) {
   const idTokenPayload = await verifyToken(idToken, "id");
   const username = idTokenPayload?.["custom:username"];
 
-  const { data } = await fetch(`${process.env.SITE}/api/users/me`, {
+  const { data } = await fetch(`${SITE}/api/users/me`, {
     method: "GET",
     cache: "force-cache",
     headers: {
@@ -89,18 +107,15 @@ export async function getUserMe(cookies: any) {
 }
 
 export async function getUserByUsername(cookies: any, username: string) {
-  const res = await fetch(
-    `${process.env.SITE}/api/users/search?q=${username}`,
-    {
-      method: "GET",
-      cache: "force-cache",
-      headers: {
-        Cookie: cookies.toString(),
-        "Content-Type": "application/json",
-      },
-      next: { tags: [`user/${username}`] },
+  const res = await fetch(`${SITE}/api/users/search?q=${username}`, {
+    method: "GET",
+    cache: "force-cache",
+    headers: {
+      Cookie: cookies.toString(),
+      "Content-Type": "application/json",
     },
-  );
+    next: { tags: [`user/${username}`] },
+  });
 
   if (res.status === 404) return null;
   const { data } = await res.json();

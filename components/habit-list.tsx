@@ -1,7 +1,11 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth/tokens";
-import { getHabitsByUserId, getHabitRequestsByUserId } from "@/lib/fetch";
+import {
+  getHabitsByUserId,
+  getHabitRequestsByUserId,
+  getHabitRequestById,
+} from "@/lib/fetch";
 
 import HabitCard from "@/components/habit-card";
 import HabitRequestCard from "@/components/habit/habit-request-card";
@@ -13,24 +17,25 @@ export default async function HabitList() {
     cookieStore.get("id_token")?.value as string,
     "id",
   );
+
   const habits = await getHabitsByUserId(
     cookieStore,
     idTokenPayload?.sub as string,
   );
-  const habitRequests = await getHabitRequestsByUserId(cookieStore);
+  const habitRequests = await getHabitRequestsByUserId(
+    cookieStore,
+    idTokenPayload?.sub as string,
+  );
 
   return (
     <div className="h-fit w-full grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
       {habits?.map((habit: any) => (
         <HabitCard key={habit.habit_id.S} habit={habit} />
       ))}
-      {habitRequests.map((habitRequest: any, index: number) => (
+      {habitRequests.map((habitRequest: any) => (
         <HabitRequestCard
           key={habitRequest.M.habit_id.S}
           habitRequest={habitRequest.M}
-          index={index}
-          myId={idTokenPayload?.sub as string}
-          myUsername={idTokenPayload?.["custom:username"] as string}
         />
       ))}
       <Link

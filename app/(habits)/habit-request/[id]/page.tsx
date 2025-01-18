@@ -1,13 +1,11 @@
 import Link from "next/link";
 
-import HabitDetailsCard from "@/components/habit/habit-details-card";
+import HabitRequestDetailsCard from "./habit-request-details-card";
 import { ArrowLeft } from "lucide-react";
 
 export default async function HabitPage(props: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ type: string }>;
 }) {
-  const searchParams = await props.searchParams;
   const params = await props.params;
 
   return (
@@ -19,7 +17,7 @@ export default async function HabitPage(props: {
           </Link>
         </div>
         <div className="flex-1 w-full flex flex-col gap-2 justify-between sm:justify-start">
-          <HabitDetailsCard params={params} searchParams={searchParams} />
+          <HabitRequestDetailsCard params={params} />
         </div>
       </div>
     </main>

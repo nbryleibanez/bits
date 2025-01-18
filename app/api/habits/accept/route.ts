@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import {
   DynamoDBClient,
+  GetItemCommand,
   UpdateItemCommand,
   PutItemCommand,
 } from "@aws-sdk/client-dynamodb";
@@ -20,19 +21,12 @@ export async function POST(request: NextRequest) {
     const payload = await validateTokens(request);
     if (!payload) return unauthorizedResponse();
 
-    const {
-      index,
-      habitId,
-      title,
-      type,
-      ownerId,
-      ownerFullName,
-      ownerAvatarUrl,
-    } = await request.json();
+    const { habitId, title, ownerId, ownerFullName, ownerAvatarUrl } =
+      await request.json();
 
     const { data, success } = habitSchema.safeParse({
       habit_id: habitId,
-      habit_type: type,
+      habit_type: "duo",
       owner: payload.access.sub,
       title: title,
       streak: 0,
@@ -56,6 +50,27 @@ export async function POST(request: NextRequest) {
     });
 
     if (!success) return internalServerErrorResponse();
+
+    const getSourceUserResponse = await client.send(
+      new GetItemCommand({
+        TableName: DYNAMODB_TABLE_USERS,
+        Key: {
+          user_id: { S: payload.access.sub },
+        },
+        ProjectionExpression: "habits_requests",
+      }),
+    );
+
+    if (
+      getSourceUserResponse.$metadata.httpStatusCode != 200 ||
+      !getSourceUserResponse.Item
+    )
+      return internalServerErrorResponse();
+
+    const habitRequestIndex =
+      getSourceUserResponse.Item.habits_requests.L?.findIndex(
+        (h) => h.M?.habit_id.S === habitId,
+      );
 
     const putItemCommandResponse = await client.send(
       new PutItemCommand({
@@ -97,7 +112,7 @@ export async function POST(request: NextRequest) {
               user_id: { S: userId },
             },
             UpdateExpression: isAcceptee
-              ? `SET habits = list_append(habits, :habit) REMOVE habits_requests[${index}]`
+              ? `SET habits = list_append(habits, :habit) REMOVE habits_requests[${habitRequestIndex}]`
               : `SET habits = list_append(habits, :habit)`,
             ExpressionAttributeValues: {
               ":habit": {
@@ -105,7 +120,7 @@ export async function POST(request: NextRequest) {
                   {
                     M: {
                       habit_id: { S: habitId },
-                      habit_type: { S: type },
+                      habit_type: { S: "duo" },
                       title: { S: title },
                     },
                   },
