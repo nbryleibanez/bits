@@ -47,6 +47,7 @@ export default function ActionButtons({
         habitId={habitId}
         ownerUsername={ownerUsername}
         myUsername={myUsername}
+        myId={myId}
         isLoading={isDeclining}
         isOtherActionRunning={isAccepting}
         onAction={(callback) => startDecliningTransition(callback)}
