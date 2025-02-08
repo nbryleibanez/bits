@@ -11,7 +11,7 @@ export default async function Page() {
   const data = await getUserMe(cookieStore);
 
   return (
-    <main className="flex flex-col min-h-screen items-center sm:justify-center p-5 gap-4">
+    <main className="flex flex-col min-h-dvh items-center sm:justify-center p-5 gap-4">
       <div className="w-full max-w-md">
         <Link className="w-fit h-fit" href="/create">
           <ArrowLeft className="h-8 w-8" />

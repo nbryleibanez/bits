@@ -12,11 +12,11 @@ import {
 
 export const metadata = {
   title: "Sign Up",
-}
+};
 
 export default async function SignUpPage() {
   return (
-    <main className="min-h-screen p-4 flex flex-col items-center justify-center">
+    <main className="min-h-dvh p-4 flex flex-col items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader>
           <div className="flex flex-col items-center space-y-2">

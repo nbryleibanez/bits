@@ -12,7 +12,7 @@ export default async function Page() {
   const { username } = await getUserMe(cookieStore);
 
   return (
-    <main className="flex flex-col gap-8 sm:gap-4 min-h-screen items-center sm:justify-center p-5">
+    <main className="flex flex-col gap-8 sm:gap-4 min-h-dvh items-center sm:justify-center p-5">
       <div className="w-full max-w-md">
         <Link className="w-fit h-fit" href="/user/me">
           <ArrowLeft className="h-8 w-8" />

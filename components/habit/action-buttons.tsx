@@ -23,7 +23,7 @@ export default function ActionButtons({
   const [isDeleting, startDeleteTransition] = useTransition();
 
   return (
-    <div className="w-full flex flex-col gap-2">
+    <div className="w-full flex flex-col gap-2 mt-auto">
       <LogHabitButton
         userId={userId}
         username={username}

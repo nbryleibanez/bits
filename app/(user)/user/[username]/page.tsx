@@ -41,7 +41,7 @@ export default async function Page(props: {
   );
 
   return (
-    <main className="min-h-screen flex flex-col gap-4 p-5">
+    <main className="min-h-dvh flex flex-col gap-4 p-5">
       <BackButton />
       <div className="min-h-fit space-y-4">
         <div className="flex flex-col items-center gap-4">

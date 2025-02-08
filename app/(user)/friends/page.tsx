@@ -16,7 +16,7 @@ export default async function FriendsPage() {
   const data = await getUserMe(cookieStore);
 
   return (
-    <main className="min-h-screen p-5 flex flex-col items-center sm:justify-center gap-4">
+    <main className="min-h-dvh p-5 flex flex-col items-center sm:justify-center gap-4">
       <div className="w-full max-w-md">
         <Link href="/" className="cursor-pointer">
           <ArrowLeft className="w-8 h-8" />

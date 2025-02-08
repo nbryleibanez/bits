@@ -11,16 +11,21 @@ export default async function HabitPage(props: {
   const params = await props.params;
 
   return (
-    <main className="min-h-dvh w-full sm:flex sm:justify-center sm:items-center">
-      <div className="min-h-dvh sm:max-w-xl flex flex-col items-center sm:justify-center gap-4 p-6">
-        <div className="w-full max-w-md cursor-pointer">
-          <Link className="w-fit h-fit" href="/">
-            <ArrowLeft className="h-8 w-8" />
-          </Link>
-        </div>
-        <div className="flex-1 w-full flex flex-col gap-2 justify-between sm:justify-start">
-          <HabitDetailsCard params={params} searchParams={searchParams} />
-        </div>
+    <main className="min-h-dvh flex flex-col items-center sm:justify-center p-5 gap-4">
+      <div className="w-full max-w-md cursor-pointer">
+        <Link className="w-fit h-fit" href="/">
+          <ArrowLeft className="h-8 w-8" />
+        </Link>
+      </div>
+
+      {/* Mobile view (up to sm breakpoint) */}
+      <div className="flex-1 w-full max-w-md sm:hidden flex flex-col gap-8">
+        <HabitDetailsCard params={params} searchParams={searchParams} />
+      </div>
+
+      {/* Desktop view (sm breakpoint and above) */}
+      <div className="w-full max-w-md hidden sm:block">
+        <HabitDetailsCard params={params} searchParams={searchParams} />
       </div>
     </main>
   );

@@ -14,7 +14,7 @@ export default async function OnboardingPage() {
   const payload = await verifyToken(idToken, "id");
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
+    <main className="flex min-h-dvh flex-col items-center justify-center">
       <Card className="w-full max-w-md">
         <CardHeader>
           <div>

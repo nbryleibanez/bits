@@ -49,7 +49,7 @@ const habitTypes = [
 
 export default function CreatePage() {
   return (
-    <main className="min-h-screen w-full p-5 flex flex-col sm:justify-center items-center gap-4">
+    <main className="min-h-dvh w-full p-5 flex flex-col sm:justify-center items-center gap-4">
       <div className="w-full max-w-lg">
         <Link className="w-fit h-fit" href="/">
           <ArrowLeft className="h-8 w-8" />
