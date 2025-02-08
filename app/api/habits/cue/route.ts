@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
     const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
-    const { title, cue, type } = await request.json();
-    if (!title || !cue || !type)
+    const { title, cue, cueType, type } = await request.json();
+    if (!title || !cue || !type || !cueType)
       return badRequestResponse("Missing required fields");
 
     const habitId = ulid();
@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       owner: payload.sub,
       title: title,
       cue: cue,
+      cueType: cueType,
       streak: 0,
       created_date: dateNow,
       participants: [

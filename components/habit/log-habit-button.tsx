@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useParams, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
@@ -15,8 +16,6 @@ interface Props {
 }
 
 export default function LogHabitButton({
-  userId,
-  username,
   isLogged,
   isLoading,
   isOtherActionRunning,
@@ -24,6 +23,7 @@ export default function LogHabitButton({
 }: Props) {
   const params = useParams();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { toast } = useToast();
   const type = searchParams.get("type");
 
@@ -44,6 +44,8 @@ export default function LogHabitButton({
         if (!res.ok) {
           throw new Error("Failed to log habit");
         }
+
+        router.refresh();
       } catch (error) {
         toast({
           variant: "destructive",

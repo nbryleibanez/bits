@@ -151,7 +151,7 @@ export default function DuoHabitForm({ data }: { data: any }) {
         <Button
           onClick={() => setLoading(false)}
           disabled={loading}
-          className="w-full h-12 mt-auto rounded-xl sm:rounded"
+          className="w-full h-12 mt-auto rounded-lg sm:rounded"
           type="submit"
         >
           {loading ? <LoadingSpinner /> : "Submit"}

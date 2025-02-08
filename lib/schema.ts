@@ -55,6 +55,7 @@ export const habitSchema = z.object({
   owner: z.string().uuid(),
   title: z.string(),
   cue: z.string().optional(),
+  cueType: z.string().optional(),
   streak: z.number(),
   created_date: z.string().datetime(),
   participants: z.array(

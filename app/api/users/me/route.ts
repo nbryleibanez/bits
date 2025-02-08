@@ -5,7 +5,7 @@ import {
   UpdateItemCommand,
   QueryCommand,
 } from "@aws-sdk/client-dynamodb";
-import { CacheClient, CredentialProvider } from "@gomomento/sdk";
+// import { CacheClient, CredentialProvider } from "@gomomento/sdk";
 
 import { validateAccessToken } from "@/utils/auth/tokens";
 import {
@@ -17,20 +17,20 @@ import {
 
 const { DYNAMODB_TABLE_USERS } = process.env;
 const client = new DynamoDBClient({});
-const cacheClient = await CacheClient.create({
-  credentialProvider: CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
-  defaultTtlSeconds: 600,
-});
+// const cacheClient = await CacheClient.create({
+//   credentialProvider: CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
+//   defaultTtlSeconds: 600,
+// });
 
 export async function GET(request: NextRequest) {
   try {
     const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
-    const cacheKey = `user:${payload.sub}`;
-    const getCache = await cacheClient.get("staging-habits", cacheKey);
-    if (getCache.type === "Hit")
-      return okResponse(JSON.parse(getCache.valueString()));
+    // const cacheKey = `user:${payload.sub}`;
+    // const getCache = await cacheClient.get("staging-habits", cacheKey);
+    // if (getCache.type === "Hit")
+    //   return okResponse(JSON.parse(getCache.valueString()));
 
     const { $metadata, Item } = await client.send(
       new GetItemCommand({
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     if ($metadata.httpStatusCode !== 200 || !Item)
       return internalServerErrorResponse();
 
-    await cacheClient.set("staging-habits", cacheKey, JSON.stringify(Item));
+    // await cacheClient.set("staging-habits", cacheKey, JSON.stringify(Item));
     return NextResponse.json({ data: Item }, { status: 200 });
   } catch (error) {
     console.error("Error in GET handler: ", error);
@@ -151,7 +151,7 @@ export async function PATCH(request: NextRequest) {
 
     if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
 
-    await cacheClient.delete("staging-habits", `user:${payload.sub}`);
+    // await cacheClient.delete("staging-habits", `user:${payload.sub}`);
     return okResponse();
   } catch (error) {
     console.error("Error in PATCH handler: ", error);

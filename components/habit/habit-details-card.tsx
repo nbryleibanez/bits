@@ -38,15 +38,26 @@ export default async function HabitDetailsCard({
         <CardHeader>
           <div className="flex justify-between">
             <div className="flex flex-col gap-1">
-              <p className="text-sm">
+              <p className="text-sm mb-4">
                 {data.habit_type.S === "basic" && "Basic"}
                 {data.habit_type.S === "cue" && "Cue"}
                 {data.habit_type.S === "duo" && "Duo"} Habit
               </p>
               {data.habit_type.S === "cue" ? (
-                <p className="text-2xl font-medium">{data.cue.S}</p>
+                <>
+                  <div>
+                    <p className="text-sm font-light">Cue</p>
+                    <p className="text-xl font-medium">{data.cue.S}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-light">Action</p>
+                    <p className="text-xl font-medium">{data.title.S}</p>
+                  </div>
+                </>
               ) : null}
-              <p className="text-2xl font-medium">{data.title.S}</p>
+              {data.habit_type.S !== "cue" ? (
+                <p className="text-2xl font-medium">{data.title.S}</p>
+              ) : null}
             </div>
             <div className="flex flex-col gap-1">
               <p className="text-sm text-end">Streak</p>

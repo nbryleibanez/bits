@@ -6,7 +6,7 @@ import {
   PutItemCommand,
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
-import { CacheClient, CredentialProvider } from "@gomomento/sdk";
+// import { CacheClient, CredentialProvider } from "@gomomento/sdk";
 
 import { validateAccessToken } from "@/utils/auth/tokens";
 import {
@@ -22,10 +22,10 @@ const {
   DYNAMODB_TABLE_HABIT_LOGS,
 } = process.env;
 const client = new DynamoDBClient({});
-const cacheClient = await CacheClient.create({
-  credentialProvider: CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
-  defaultTtlSeconds: 3600,
-});
+// const cacheClient = await CacheClient.create({
+//   credentialProvider: CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
+//   defaultTtlSeconds: 3600,
+// });
 
 /*
   Get Habit 
@@ -39,12 +39,12 @@ export async function GET(
     const payload = await validateAccessToken(req);
     if (!payload) return unauthorizedResponse();
 
-    const getCache = await cacheClient.get(
-      "staging-habits",
-      `habit:${params.id}`,
-    );
-    if (getCache.type === "Hit")
-      return okResponse(JSON.parse(getCache.valueString()));
+    // const getCache = await cacheClient.get(
+    //   "staging-habits",
+    //   `habit:${params.id}`,
+    // );
+    // if (getCache.type === "Hit")
+    //   return okResponse(JSON.parse(getCache.valueString()));
 
     const type = req.nextUrl.searchParams.get("type") as string;
     const { $metadata, Item } = await client.send(
@@ -57,11 +57,11 @@ export async function GET(
       }),
     );
 
-    await cacheClient.set(
-      "staging-habits",
-      `habit:${params.id}`,
-      JSON.stringify(Item),
-    );
+    // await cacheClient.set(
+    //   "staging-habits",
+    //   `habit:${params.id}`,
+    //   JSON.stringify(Item),
+    // );
 
     if ($metadata.httpStatusCode !== 200 || !Item)
       return internalServerErrorResponse();
@@ -186,7 +186,8 @@ export async function PATCH(
     if (createLogResponse.$metadata.httpStatusCode !== 200)
       return internalServerErrorResponse();
 
-    await cacheClient.delete("staging-habits", `habit:${params.id}`);
+    // await cacheClient.delete("staging-habits", `habit:${params.id}`);
+    // await cacheClient.delete("staging-habits", `user:${payload.sub}:habits`);
     return NextResponse.json(
       { message: "Item updated successfully." },
       { status: 200 },
@@ -258,8 +259,8 @@ export async function DELETE(
       }),
     );
 
-    await cacheClient.delete("staging-habits", `habit:${params.id}`);
-    await cacheClient.delete("staging-habits", `user:${payload.sub}:habits`);
+    // await cacheClient.delete("staging-habits", `habit:${params.id}`);
+    // await cacheClient.delete("staging-habits", `user:${payload.sub}:habits`);
     return okResponse();
   } catch (error) {
     console.error("Error in DELETE handler: ", error);

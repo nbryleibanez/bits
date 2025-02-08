@@ -6,6 +6,7 @@ import {
   PutItemCommand,
   UpdateItemCommand,
 } from "@aws-sdk/client-dynamodb";
+// import { CacheClient, CredentialProvider } from "@gomomento/sdk";
 
 import { verifyToken, validateAccessToken } from "@/utils/auth/tokens";
 import {
@@ -15,8 +16,12 @@ import {
   internalServerErrorResponse,
 } from "@/utils/http/responses";
 
-const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_HABITS, DYNAMODB_TABLE_USERS } = process.env;
+const client = new DynamoDBClient({});
+// const cacheClient = await CacheClient.create({
+//   credentialProvider: CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
+//   defaultTtlSeconds: 3600,
+// });
 
 export async function POST(request: NextRequest) {
   try {
@@ -110,6 +115,7 @@ export async function POST(request: NextRequest) {
     if (updateItemResponse.$metadata.httpStatusCode !== 200)
       return internalServerErrorResponse();
 
+    // await cacheClient.delete("staging-habits", `user:${payload.sub}:habits`);
     return createdResponse({ habitId, habitType: type });
   } catch (error) {
     console.error("Error in POST handler:", error);

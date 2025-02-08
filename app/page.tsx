@@ -1,5 +1,6 @@
 import HabitList from "@/components/habit-list";
 import ProfileCard from "@/components/profile-card";
+// import FCMNotification from "@/components/fcm-notification";
 
 export default async function Home() {
   return (
@@ -8,6 +9,7 @@ export default async function Home() {
         <ProfileCard />
         <HabitList />
       </div>
+      {/* <FCMNotification /> */}
     </main>
   );
 }

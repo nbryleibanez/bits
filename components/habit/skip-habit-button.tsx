@@ -15,8 +15,6 @@ interface Props {
 }
 
 export default function SkipHabitButton({
-  userId,
-  username,
   isLogged,
   isLoading,
   isOtherActionRunning,
@@ -41,9 +39,11 @@ export default function SkipHabitButton({
             body: JSON.stringify({ action: "skip" }),
           },
         );
+
         if (!res.ok) {
           throw new Error("Failed to log habit");
         }
+
         router.refresh();
       } catch (error) {
         toast({

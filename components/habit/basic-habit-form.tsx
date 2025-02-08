@@ -23,13 +23,7 @@ const FormSchema = z.object({
   title: z.string().min(1, { message: "Title is required" }),
 });
 
-export default function BasicHabitForm({
-  userId,
-  username,
-}: {
-  userId: string;
-  username: string;
-}) {
+export default function BasicHabitForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
