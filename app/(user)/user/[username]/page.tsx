@@ -41,54 +41,108 @@ export default async function Page(props: {
   );
 
   return (
-    <main className="min-h-dvh flex flex-col gap-4 p-5">
+    <main className="min-h-dvh flex flex-col items-center sm:justify-center gap-4 p-5">
       <BackButton />
-      <div className="min-h-fit space-y-4">
-        <div className="flex flex-col items-center gap-4">
-          <Avatar className="h-20 w-20">
-            <AvatarImage src={user.avatar_url.S} />
-            <AvatarFallback>S</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col items-center">
-            <p className="font-semibold">{user.full_name.S}</p>
-            <p>@{user.username.S}</p>
+
+      {/* Mobile view (up to sm breakpoint) */}
+      <div className="flex-1 w-full max-w-md sm:hidden flex flex-col gap-8">
+        <div className="min-h-fit space-y-4">
+          <div className="flex flex-col items-center gap-4">
+            <Avatar className="h-20 w-20">
+              <AvatarImage src={user.avatar_url.S} />
+              <AvatarFallback>S</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col items-center">
+              <p className="font-semibold">{user.full_name.S}</p>
+              <p>@{user.username.S}</p>
+            </div>
+          </div>
+          <div className="w-full h-fit flex items-center rounded-xl border border-gray-200">
+            <div className="flex-1 p-4 border-r border-gray-200">
+              <p className="font-light">Habits</p>
+              <p className="text-2xl font-semibold">{habits.length}</p>
+            </div>
+            <div className="flex-1 p-4">
+              <p className="font-light">Highest Streak</p>
+              <p className="text-2xl font-semibold">{highestStreak}</p>
+            </div>
           </div>
         </div>
-        <div className="w-full h-fit flex items-center rounded-xl border border-gray-200">
-          <div className="flex-1 p-4 border-r border-gray-200">
-            <p className="font-light">Habits</p>
-            <p className="text-2xl font-semibold">{habits.length}</p>
-          </div>
-          <div className="flex-1 p-4">
-            <p className="font-light">Highest Streak</p>
-            <p className="text-2xl font-semibold">{highestStreak}</p>
-          </div>
-        </div>
+        {isFriend ? (
+          <UnfriendButton
+            sourceUserId={me.user_id.S as string}
+            targetUserId={user.user_id.S as string}
+          />
+        ) : isRequesting ? (
+          <AcceptRequestButton
+            sourceUserId={me.user_id.S as string}
+            sourceUsername={me.username.S as string}
+            sourceFullName={me.full_name.S as string}
+            sourceAvatarUrl={me.avatar_url.S as string}
+            targetUserId={user.user_id.S as string}
+            targetUsername={user.username.S as string}
+            targetFullName={user.full_name.S as string}
+            targetAvatarUrl={user.avatar_url.S as string}
+            index={index}
+          />
+        ) : (
+          <AddFriendButton
+            isSentRequest={isSentRequest}
+            sourceUsername={me.username.S as string}
+            targetUsername={user.username.S as string}
+          />
+        )}
       </div>
-      {isFriend ? (
-        <UnfriendButton
-          sourceUserId={me.user_id.S as string}
-          targetUserId={user.user_id.S as string}
-        />
-      ) : isRequesting ? (
-        <AcceptRequestButton
-          sourceUserId={me.user_id.S as string}
-          sourceUsername={me.username.S as string}
-          sourceFullName={me.full_name.S as string}
-          sourceAvatarUrl={me.avatar_url.S as string}
-          targetUserId={user.user_id.S as string}
-          targetUsername={user.username.S as string}
-          targetFullName={user.full_name.S as string}
-          targetAvatarUrl={user.avatar_url.S as string}
-          index={index}
-        />
-      ) : (
-        <AddFriendButton
-          isSentRequest={isSentRequest}
-          sourceUsername={me.username.S as string}
-          targetUsername={user.username.S as string}
-        />
-      )}
+
+      {/* Desktop view (sm breakpoint and above) */}
+      <div className="w-full max-w-md hidden sm:block">
+        <div className="min-h-fit space-y-4 mb-4">
+          <div className="flex flex-col items-center gap-4">
+            <Avatar className="h-20 w-20">
+              <AvatarImage src={user.avatar_url.S} />
+              <AvatarFallback>S</AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col items-center">
+              <p className="font-semibold">{user.full_name.S}</p>
+              <p>@{user.username.S}</p>
+            </div>
+          </div>
+          <div className="w-full h-fit flex items-center rounded-xl border border-gray-200">
+            <div className="flex-1 p-4 border-r border-gray-200">
+              <p className="font-light">Habits</p>
+              <p className="text-2xl font-semibold">{habits.length}</p>
+            </div>
+            <div className="flex-1 p-4">
+              <p className="font-light">Highest Streak</p>
+              <p className="text-2xl font-semibold">{highestStreak}</p>
+            </div>
+          </div>
+        </div>
+        {isFriend ? (
+          <UnfriendButton
+            sourceUserId={me.user_id.S as string}
+            targetUserId={user.user_id.S as string}
+          />
+        ) : isRequesting ? (
+          <AcceptRequestButton
+            sourceUserId={me.user_id.S as string}
+            sourceUsername={me.username.S as string}
+            sourceFullName={me.full_name.S as string}
+            sourceAvatarUrl={me.avatar_url.S as string}
+            targetUserId={user.user_id.S as string}
+            targetUsername={user.username.S as string}
+            targetFullName={user.full_name.S as string}
+            targetAvatarUrl={user.avatar_url.S as string}
+            index={index}
+          />
+        ) : (
+          <AddFriendButton
+            isSentRequest={isSentRequest}
+            sourceUsername={me.username.S as string}
+            targetUsername={user.username.S as string}
+          />
+        )}
+      </div>
     </main>
   );
 }

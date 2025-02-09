@@ -125,7 +125,7 @@ export default function CueHabitForm() {
                     Implementation Intention
                   </SelectItem>
                   <SelectItem value="time-based" disabled>
-                    Time-based Reminder
+                    Time-based Reminder (Coming Soon)
                   </SelectItem>
                 </SelectContent>
               </Select>
