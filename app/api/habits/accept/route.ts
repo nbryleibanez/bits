@@ -14,7 +14,11 @@ import {
 } from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
-const { DYNAMODB_TABLE_USERS, DYNAMODB_TABLE_HABITS } = process.env;
+const {
+  DYNAMODB_TABLE_USERS,
+  DYNAMODB_TABLE_HABITS,
+  DYNAMODB_TABLE_HABIT_LOGS,
+} = process.env;
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +31,7 @@ export async function POST(request: NextRequest) {
     const { data, success } = habitSchema.safeParse({
       habit_id: habitId,
       habit_type: "duo",
-      owner: payload.access.sub,
+      owner: ownerId,
       title: title,
       streak: 0,
       created_date: new Date().toISOString(),
@@ -135,6 +139,26 @@ export async function POST(request: NextRequest) {
         }
       }),
     );
+
+    const timestamp = new Date().toISOString();
+    const habitIdTimestamp = `${data.habit_id}_${timestamp}`;
+    const createLogResponse = await client.send(
+      new PutItemCommand({
+        TableName: DYNAMODB_TABLE_HABIT_LOGS,
+        Item: {
+          habit_id: { S: data.habit_id },
+          timestamp: { S: timestamp.toString() },
+          user_id: { S: ownerId },
+          habit_id_timestamp: { S: habitIdTimestamp },
+          title: { S: data.title },
+          habit_type: { S: data.habit_type },
+          action: { S: "create" },
+        },
+      }),
+    );
+
+    if (createLogResponse.$metadata.httpStatusCode !== 200)
+      return internalServerErrorResponse();
 
     return NextResponse.json({ habitId }, { status: 200 });
   } catch (error) {

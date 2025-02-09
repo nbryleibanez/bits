@@ -215,6 +215,19 @@ export async function DELETE(
 
     if (payload.sub !== owner) return forbiddenResponse();
 
+    const getHabitResponse = await client.send(
+      new GetItemCommand({
+        TableName: DYNAMODB_TABLE_HABITS,
+        Key: {
+          habit_id: { S: params.id },
+          habit_type: { S: habitType },
+        },
+      }),
+    );
+
+    if (getHabitResponse.$metadata.httpStatusCode !== 200)
+      return internalServerErrorResponse();
+
     const { $metadata } = await client.send(
       new DeleteItemCommand({
         TableName: DYNAMODB_TABLE_HABITS,
@@ -262,20 +275,9 @@ export async function DELETE(
     if (updateUserResponse.$metadata.httpStatusCode !== 200)
       return internalServerErrorResponse();
 
-    const getHabitResponse = await client.send(
-      new GetItemCommand({
-        TableName: DYNAMODB_TABLE_HABITS,
-        Key: {
-          habit_id: { S: params.id },
-          habit_type: { S: habitType },
-        },
-      }),
-    );
-
-    if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
-
     const timestamp = new Date().toISOString();
     const habitIdTimestamp = `${params.id}_${timestamp}`;
+
     const createLogResponse = await client.send(
       new PutItemCommand({
         TableName: DYNAMODB_TABLE_HABIT_LOGS,

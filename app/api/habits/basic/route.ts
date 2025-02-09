@@ -16,7 +16,11 @@ import {
   internalServerErrorResponse,
 } from "@/utils/http/responses";
 
-const { DYNAMODB_TABLE_HABITS, DYNAMODB_TABLE_USERS } = process.env;
+const {
+  DYNAMODB_TABLE_HABITS,
+  DYNAMODB_TABLE_USERS,
+  DYNAMODB_TABLE_HABIT_LOGS,
+} = process.env;
 const client = new DynamoDBClient({});
 // const cacheClient = await CacheClient.create({
 //   credentialProvider: CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
@@ -113,6 +117,26 @@ export async function POST(request: NextRequest) {
     );
 
     if (updateItemResponse.$metadata.httpStatusCode !== 200)
+      return internalServerErrorResponse();
+
+    const timestamp = new Date().toISOString();
+    const habitIdTimestamp = `${data.habit_id}_${timestamp}`;
+    const createLogResponse = await client.send(
+      new PutItemCommand({
+        TableName: DYNAMODB_TABLE_HABIT_LOGS,
+        Item: {
+          habit_id: { S: data.habit_id },
+          timestamp: { S: timestamp.toString() },
+          user_id: { S: payload.sub },
+          habit_id_timestamp: { S: habitIdTimestamp },
+          title: { S: data.title },
+          habit_type: { S: data.habit_type },
+          action: { S: "create" },
+        },
+      }),
+    );
+
+    if (createLogResponse.$metadata.httpStatusCode !== 200)
       return internalServerErrorResponse();
 
     // await cacheClient.delete("staging-habits", `user:${payload.sub}:habits`);

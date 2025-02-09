@@ -1,14 +1,18 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { ulid } from "ulid"
-import { DynamoDBClient, GetItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { type NextRequest, NextResponse } from "next/server";
+import { ulid } from "ulid";
+import {
+  DynamoDBClient,
+  GetItemCommand,
+  PutItemCommand,
+} from "@aws-sdk/client-dynamodb";
 
-import { habitSchema } from "@/lib/schema"
-import { verifyToken, validateAccessToken } from "@/utils/auth/tokens"
+import { habitSchema } from "@/lib/schema";
+import { verifyToken, validateAccessToken } from "@/utils/auth/tokens";
 import {
   badRequestResponse,
   unauthorizedResponse,
-  internalServerErrorResponse
-} from "@/utils/http/responses"
+  internalServerErrorResponse,
+} from "@/utils/http/responses";
 
 const client = new DynamoDBClient({});
 const { DYNAMODB_TABLE_HABITS, DYNAMODB_TABLE_USERS } = process.env;
@@ -18,9 +22,9 @@ export async function POST(request: NextRequest) {
     const payload = await validateAccessToken(request);
     if (!payload) return unauthorizedResponse();
 
-    const { title, duoId, type } = await request.json()
-    const habitId = ulid()
-    const dateNow = new Date().toISOString()
+    const { title, duoId, type } = await request.json();
+    const habitId = ulid();
+    const dateNow = new Date().toISOString();
 
     if (!type || !title) return badRequestResponse("Missing required fields");
 
@@ -31,10 +35,11 @@ export async function POST(request: NextRequest) {
       new GetItemCommand({
         TableName: DYNAMODB_TABLE_USERS,
         Key: { user_id: { S: duoId } },
-      })
-    )
+      }),
+    );
 
-    if (getDuoResponse.$metadata.httpStatusCode != 200 || !getDuoResponse.Item) return internalServerErrorResponse()
+    if (getDuoResponse.$metadata.httpStatusCode != 200 || !getDuoResponse.Item)
+      return internalServerErrorResponse();
 
     const { data, success } = habitSchema.safeParse({
       habit_id: habitId,
@@ -48,7 +53,7 @@ export async function POST(request: NextRequest) {
           username: idTokenPayload?.["custom:username"] as string,
           full_name: idTokenPayload?.name as string,
           avatar_url: idTokenPayload?.picture as string,
-          role: 'owner',
+          role: "owner",
           is_logged: false,
         },
         {
@@ -56,11 +61,11 @@ export async function POST(request: NextRequest) {
           username: getDuoResponse.Item.username.S,
           full_name: getDuoResponse.Item.full_name.S,
           avatar_url: getDuoResponse.Item.avatar_url.S,
-          role: 'participant',
+          role: "participant",
           is_logged: false,
-        }
+        },
       ],
-    })
+    });
 
     if (!success) return badRequestResponse();
 
@@ -74,7 +79,7 @@ export async function POST(request: NextRequest) {
           streak: { N: data.streak.toString() },
           created_date: { S: data.created_date },
           participants: {
-            L: data.participants.map(participant => ({
+            L: data.participants.map((participant) => ({
               M: {
                 user_id: { S: participant.user_id },
                 full_name: { S: participant.full_name },
@@ -85,13 +90,14 @@ export async function POST(request: NextRequest) {
             })),
           },
         },
-      })
-    )
+      }),
+    );
 
     if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
-    return NextResponse.json({ habitId }, { status: 201 })
+
+    return NextResponse.json({ habitId }, { status: 201 });
   } catch (error) {
-    console.error('Error in POST handler:', error)
+    console.error("Error in POST handler:", error);
     return internalServerErrorResponse();
   }
 }
