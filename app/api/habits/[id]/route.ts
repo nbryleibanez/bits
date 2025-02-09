@@ -251,13 +251,48 @@ export async function DELETE(
       throw new Error("Habit not found");
     }
 
-    await client.send(
+    const updateUserResponse = await client.send(
       new UpdateItemCommand({
         TableName: DYNAMODB_TABLE_USERS,
         Key: { user_id: { S: payload.sub } },
         UpdateExpression: `REMOVE habits[${indexToRemove}]`,
       }),
     );
+
+    if (updateUserResponse.$metadata.httpStatusCode !== 200)
+      return internalServerErrorResponse();
+
+    const getHabitResponse = await client.send(
+      new GetItemCommand({
+        TableName: DYNAMODB_TABLE_HABITS,
+        Key: {
+          habit_id: { S: params.id },
+          habit_type: { S: habitType },
+        },
+      }),
+    );
+
+    if ($metadata.httpStatusCode !== 200) return internalServerErrorResponse();
+
+    const timestamp = new Date().toISOString();
+    const habitIdTimestamp = `${params.id}_${timestamp}`;
+    const createLogResponse = await client.send(
+      new PutItemCommand({
+        TableName: DYNAMODB_TABLE_HABIT_LOGS,
+        Item: {
+          habit_id: { S: params.id },
+          timestamp: { S: timestamp.toString() },
+          user_id: { S: payload.sub },
+          habit_id_timestamp: { S: habitIdTimestamp },
+          title: { S: getHabitResponse.Item?.title.S as string },
+          habit_type: { S: getHabitResponse.Item?.habit_type.S as string },
+          action: { S: "delete" },
+        },
+      }),
+    );
+
+    if (createLogResponse.$metadata.httpStatusCode !== 200)
+      return internalServerErrorResponse();
 
     // await cacheClient.delete("staging-habits", `habit:${params.id}`);
     // await cacheClient.delete("staging-habits", `user:${payload.sub}:habits`);
