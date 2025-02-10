@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
@@ -14,6 +15,7 @@ interface Props {
 export default function UnfriendButton({ sourceUserId, targetUserId }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleUnfriend = async () => {
     setIsLoading(true);
@@ -36,6 +38,7 @@ export default function UnfriendButton({ sourceUserId, targetUserId }: Props) {
       if (!res.ok) throw new Error();
 
       setIsLoading(false);
+      router.refresh();
     } catch (error) {
       toast({
         variant: "destructive",
