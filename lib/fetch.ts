@@ -81,3 +81,18 @@ export async function getUserByUsername(cookies: any, username: string) {
 
   return data;
 }
+
+export async function getUserById(cookies: any, userId: string) {
+  const res = await fetch(`${SITE}/api/users/${userId}`, {
+    method: "GET",
+    headers: {
+      Cookie: cookies.toString(),
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (res.status === 404) return null;
+  const { data } = await res.json();
+
+  return data;
+}

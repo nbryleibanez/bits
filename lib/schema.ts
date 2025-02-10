@@ -61,8 +61,6 @@ export const habitSchema = z.object({
   participants: z.array(
     z.object({
       user_id: z.string(),
-      full_name: z.string(),
-      avatar_url: z.string().url(),
       role: z.enum(["owner", "participant"]),
       is_logged: z.boolean(),
     }),

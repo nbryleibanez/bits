@@ -30,7 +30,11 @@ export default async function HabitList() {
   return (
     <div className="h-fit w-full grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
       {habits?.map((habit: any) => (
-        <HabitCard key={habit.habit_id.S} habit={habit} />
+        <HabitCard
+          key={habit.habit_id.S}
+          cookieStore={cookieStore}
+          habit={habit}
+        />
       ))}
       {habitRequests.map((habitRequest: any) => (
         <HabitRequestCard

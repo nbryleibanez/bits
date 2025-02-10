@@ -8,7 +8,7 @@ import {
 } from "@aws-sdk/client-dynamodb";
 // import { CacheClient, CredentialProvider } from "@gomomento/sdk";
 
-import { verifyToken, validateAccessToken } from "@/utils/auth/tokens";
+import { validateAccessToken } from "@/utils/auth/tokens";
 import {
   createdResponse,
   badRequestResponse,
@@ -42,8 +42,6 @@ export async function POST(request: NextRequest) {
 
     const habitId = ulid();
     const dateNow = new Date().toISOString();
-    const idToken = request.cookies.get("id_token")?.value as string;
-    const idTokenPayload = await verifyToken(idToken, "id");
 
     const { data, success } = habitSchema.safeParse({
       habit_id: habitId,
@@ -55,9 +53,6 @@ export async function POST(request: NextRequest) {
       participants: [
         {
           user_id: payload.sub,
-          username: idTokenPayload?.["custom:username"] as string,
-          full_name: idTokenPayload?.name as string,
-          avatar_url: idTokenPayload?.picture as string,
           role: "owner",
           is_logged: false,
         },
@@ -80,8 +75,6 @@ export async function POST(request: NextRequest) {
             L: data.participants.map((participant) => ({
               M: {
                 user_id: { S: participant.user_id },
-                full_name: { S: participant.full_name },
-                avatar_url: { S: participant.avatar_url },
                 role: { S: participant.role },
                 is_logged: { BOOL: participant.is_logged },
               },

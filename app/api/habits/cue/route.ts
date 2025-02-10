@@ -74,8 +74,6 @@ export async function POST(request: NextRequest) {
             L: data.participants.map((participant) => ({
               M: {
                 user_id: { S: participant.user_id },
-                full_name: { S: participant.full_name },
-                avatar_url: { S: participant.avatar_url },
                 role: { S: participant.role },
                 is_logged: { BOOL: participant.is_logged },
               },
