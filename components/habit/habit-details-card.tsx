@@ -1,12 +1,14 @@
+import { Suspense } from "react";
 import { cookies } from "next/headers";
 import { verifyToken } from "@/utils/auth/tokens";
 import { getHabit } from "@/lib/fetch";
 
 import ActionButtons from "@/components/habit/action-buttons";
+import ParticipantItem from "@/app/(habits)/habit/[id]/participant-item";
 
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CardHeader, CardContent, Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default async function HabitDetailsCard({
   params,
@@ -15,14 +17,15 @@ export default async function HabitDetailsCard({
   params: { id: string };
   searchParams: { type: string };
 }) {
+  const cookieStore = await cookies();
   const { data } = await getHabit(
-    (await cookies()).toString(),
+    cookieStore.toString(),
     params.id,
     searchParams.type,
   );
 
   const idTokenPayload = await verifyToken(
-    (await cookies()).get("id_token")?.value as string,
+    cookieStore.get("id_token")?.value as string,
     "id",
   );
   const userId = idTokenPayload?.sub as string;
@@ -70,19 +73,17 @@ export default async function HabitDetailsCard({
           <div className="flex flex-col gap-4 pt-4">
             <div className="text-sm">Participants</div>
             <div className="flex flex-col gap-3">
-              {data.participants.L.map((participant: any) => (
-                <div
-                  key={participant.M.user_id.S}
-                  className="flex items-center gap-2"
+              {data.participants.L.map((p: any, i: any) => (
+                <Suspense
+                  key={i}
+                  fallback={<Skeleton className="h-8 w-[200px]" />}
                 >
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src={participant.M.avatar_url.S} />
-                    <AvatarFallback>
-                      {participant.M.full_name.S[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <p>{participant.M.full_name.S}</p>
-                </div>
+                  <ParticipantItem
+                    cookieStore={cookieStore}
+                    userId={p.M.user_id.S}
+                    isLogged={p.M.is_logged.BOOL}
+                  />
+                </Suspense>
               ))}
             </div>
           </div>

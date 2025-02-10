@@ -3,6 +3,7 @@ import { DynamoDBClient, GetItemCommand } from "@aws-sdk/client-dynamodb";
 
 import { validateAccessToken } from "@/utils/auth/tokens";
 import {
+  okResponse,
   unauthorizedResponse,
   internalServerErrorResponse,
 } from "@/utils/http/responses";
@@ -31,7 +32,7 @@ export async function GET(
     if ($metadata.httpStatusCode !== 200 || !Item)
       return internalServerErrorResponse();
 
-    return NextResponse.json({ Item }, { status: 200 });
+    return okResponse(Item);
   } catch (error: any) {
     console.error("Error in GET handler: ", error);
     return internalServerErrorResponse();

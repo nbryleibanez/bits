@@ -110,14 +110,10 @@ export async function PATCH(
           p: any,
         ): {
           user_id: string;
-          full_name: string;
-          avatar_url: string;
           is_logged: boolean;
           role: string;
         } => ({
           user_id: p.M.user_id.S,
-          full_name: p.M.full_name.S,
-          avatar_url: p.M.avatar_url.S,
           is_logged: p.M.is_logged.BOOL,
           role: p.M.role.S,
         }),
@@ -132,8 +128,6 @@ export async function PATCH(
     const updatedParticipantsDynamoDB = updatedParticipants?.map((p: any) => ({
       M: {
         user_id: { S: p.user_id },
-        full_name: { S: p.full_name },
-        avatar_url: { S: p.avatar_url },
         is_logged: { BOOL: p.is_logged },
         role: { S: p.role },
       },

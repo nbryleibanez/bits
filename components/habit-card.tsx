@@ -1,8 +1,9 @@
+import { Suspense } from "react";
 import Link from "next/link";
+import HabitCardIcon from "./habit-card-icon";
+import { Skeleton } from "@/components/ui/skeleton";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
-export default function HabitCard({ habit }: any) {
+export default function HabitCard({ cookieStore, habit }: any) {
   return (
     <Link
       href={`/habit/${habit.habit_id.S}?type=${habit.habit_type.S}`}
@@ -14,11 +15,13 @@ export default function HabitCard({ habit }: any) {
           <div className="text-xs">streak</div>
         </div>
         <div className="flex gap-1">
-          {habit.participants.L.map((p: any) => (
-            <Avatar key={p.M.user_id.S} className="w-10 h-10">
-              <AvatarImage src={p.M.avatar_url.S} />
-              <AvatarFallback>P</AvatarFallback>
-            </Avatar>
+          {habit.participants.L.map((p: any, i: any) => (
+            <Suspense
+              key={i}
+              fallback={<Skeleton className="h-10 w-10 rounded-full" />}
+            >
+              <HabitCardIcon cookieStore={cookieStore} userId={p.M.user_id.S} />
+            </Suspense>
           ))}
         </div>
       </div>
