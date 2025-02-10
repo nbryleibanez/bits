@@ -14,8 +14,20 @@ export default async function OnboardingPage() {
   const payload = await verifyToken(idToken, "id");
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-center">
-      <Card className="w-full max-w-md">
+    <main className="min-h-dvh flex sm:items-center justify-center p-5">
+      {/* Mobile view (up to sm breakpoint) */}
+      <div className="w-full max-w-md sm:hidden flex flex-col gap-8">
+        <div>
+          <h1 className="text-3xl font-bold">Let&apos;s get you started</h1>
+        </div>
+        <OnboardingForm
+          firstName={payload?.given_name as string}
+          lastName={payload?.family_name as string}
+        />
+      </div>
+
+      {/* Desktop view (sm breakpoint and above) */}
+      <Card className="w-full max-w-md hidden sm:block">
         <CardHeader>
           <div>
             <h1 className="text-3xl font-bold">Let&apos;s get you started</h1>
