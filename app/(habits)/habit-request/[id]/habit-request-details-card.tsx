@@ -29,7 +29,7 @@ export default async function HabitRequestDetailsCard({
 
   return (
     <>
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md mb-4">
         <CardHeader>
           <div className="flex justify-between">
             <div className="flex flex-col gap-1">

@@ -29,7 +29,7 @@ export default function ActionButtons({
   const [isDeclining, startDecliningTransition] = useTransition();
 
   return (
-    <div className="w-full flex flex-col gap-2">
+    <div className="w-full flex flex-col gap-2 mt-auto">
       <AcceptButton
         habitId={habitId}
         title={title}
