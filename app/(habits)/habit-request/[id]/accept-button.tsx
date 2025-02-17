@@ -61,7 +61,7 @@ export default function AcceptButton({
           description: "You are now in a Duo Habit with this user.",
         });
 
-        router.push(`/habit/${habitId}?=duo`);
+        router.push(`/habit/${habitId}?type=duo`);
       } catch (error: any) {
         toast({
           variant: "destructive",

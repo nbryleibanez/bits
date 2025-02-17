@@ -18,7 +18,6 @@ export default async function HabitRequestDetailsCard({
     cookieStore.toString(),
     params.id,
   );
-  console.log("habitRequest", habitRequest);
 
   const idTokenPayload = await verifyToken(
     (await cookies()).get("id_token")?.value as string,
@@ -29,7 +28,7 @@ export default async function HabitRequestDetailsCard({
 
   return (
     <>
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md mb-4">
         <CardHeader>
           <div className="flex justify-between">
             <div className="flex flex-col gap-1">
