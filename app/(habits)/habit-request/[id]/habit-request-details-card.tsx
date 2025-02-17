@@ -18,7 +18,6 @@ export default async function HabitRequestDetailsCard({
     cookieStore.toString(),
     params.id,
   );
-  console.log("habitRequest", habitRequest);
 
   const idTokenPayload = await verifyToken(
     (await cookies()).get("id_token")?.value as string,
